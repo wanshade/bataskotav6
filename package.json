@@ -1,0 +1,53 @@
+{
+  "name": "batas-kota---the-town-space",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "next dev --webpack",
+    "build": "next build --webpack",
+    "start": "next start",
+    "lint": "next lint",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio",
+    "db:check-slots": "npx tsx scripts/check-bookings.ts",
+    "db:migrate-slots": "npx tsx scripts/migrate-to-1hour-slots.ts"
+  },
+  "dependencies": {
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.4.0",
+    "@types/three": "^0.181.0",
+    "autoprefixer": "^10.4.16",
+    "dotenv": "^17.2.3",
+    "drizzle-orm": "^0.44.7",
+    "html2canvas": "^1.4.1",
+    "html2pdf.js": "^0.12.1",
+    "jspdf": "^3.0.4",
+    "lucide-react": "^0.554.0",
+    "next": "^16.0.10",
+    "next-auth": "^4.24.13",
+    "postcss": "^8.4.32",
+    "postgres": "^3.4.7",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "recharts": "^3.7.0",
+    "tailwindcss": "^3.4.0",
+    "three": "^0.181.2",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.3.1",
+    "@types/node": "^22.14.0",
+    "@types/react": "19.2.6",
+    "drizzle-kit": "^0.31.7",
+    "eslint": "^9.0.0",
+    "eslint-config-next": "^16.0.3",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "tsx": "^4.21.0",
+    "typescript": "~5.8.2",
+    "typescript-eslint": "^8.56.1"
+  }
+}

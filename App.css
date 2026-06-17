@@ -1,0 +1,221 @@
+/* Additional styles that were previously in the App component */
+
+.min-h-screen {
+  min-height: 100vh;
+}
+
+.overflow-x-hidden {
+  overflow-x: hidden;
+}
+
+.selection\:bg-neon-green {
+  background-color: #147c60;
+}
+
+.selection\:text-black {
+  color: #000000;
+}
+
+/* Additional utility classes for the neon theme */
+.bg-dark-bg {
+  background-color: #050505;
+}
+
+.bg-dark-surface {
+  background-color: #0a0a0a;
+}
+
+.bg-dark-card {
+  background-color: #121212;
+}
+
+.text-neon-green {
+  color: #147c60;
+}
+
+.border-neon-green {
+  border-color: #147c60;
+}
+
+.hover\:text-neon-green:hover {
+  color: #147c60;
+}
+
+.hover\:border-neon-green:hover {
+  border-color: #147c60;
+}
+
+/* Soccer Ball Animations */
+@keyframes bounce-ball {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-30px) rotate(90deg);
+  }
+  50% {
+    transform: translateY(0) rotate(180deg);
+  }
+  75% {
+    transform: translateY(-15px) rotate(270deg);
+  }
+}
+
+@keyframes float-ball {
+  0%, 100% {
+    transform: translateY(0) translateX(0) rotate(0deg);
+  }
+  33% {
+    transform: translateY(-20px) translateX(10px) rotate(120deg);
+  }
+  66% {
+    transform: translateY(-10px) translateX(-10px) rotate(240deg);
+  }
+}
+
+@keyframes roll-ball {
+  0% {
+    transform: translateX(0) rotate(0deg);
+  }
+  100% {
+    transform: translateX(100px) rotate(360deg);
+  }
+}
+
+@keyframes pulse-ball {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.8;
+  }
+}
+
+.animate-bounce-ball {
+  animation: bounce-ball 3s ease-in-out infinite;
+}
+
+.animate-float-ball {
+  animation: float-ball 5s ease-in-out infinite;
+}
+
+.animate-roll-ball {
+  animation: roll-ball 8s linear infinite;
+}
+
+.animate-pulse-ball {
+  animation: pulse-ball 2s ease-in-out infinite;
+}
+
+/* Geometric Art Animations - Minimalist Style */
+@keyframes geo-orbit {
+  0% {
+    transform: rotate(0deg) translateX(10px) rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg) translateX(10px) rotate(-360deg);
+  }
+}
+
+@keyframes geo-orbit-reverse {
+  0% {
+    transform: rotate(0deg) translateX(-10px) rotate(0deg);
+  }
+  100% {
+    transform: rotate(-360deg) translateX(-10px) rotate(360deg);
+  }
+}
+
+@keyframes geo-float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+@keyframes geo-float-gentle {
+  0%, 100% {
+    transform: translateY(0) translateX(0);
+  }
+  33% {
+    transform: translateY(-15px) translateX(5px);
+  }
+  66% {
+    transform: translateY(-8px) translateX(-5px);
+  }
+}
+
+@keyframes geo-float-slow {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
+}
+
+@keyframes geo-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.35;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.5;
+  }
+}
+
+@keyframes geo-rotate-slow {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-geo-orbit {
+  animation: geo-orbit 15s linear infinite;
+}
+
+.animate-geo-orbit-reverse {
+  animation: geo-orbit-reverse 18s linear infinite;
+}
+
+.animate-geo-float {
+  animation: geo-float 5s ease-in-out infinite;
+}
+
+.animate-geo-float-gentle {
+  animation: geo-float-gentle 7s ease-in-out infinite;
+}
+
+.animate-geo-float-slow {
+  animation: geo-float-slow 6s ease-in-out infinite;
+}
+
+.animate-geo-pulse {
+  animation: geo-pulse 4s ease-in-out infinite;
+}
+
+.animate-geo-rotate-slow {
+  animation: geo-rotate-slow 25s linear infinite;
+}
+
+/* Scan animation for map */
+@keyframes scan {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100vh);
+  }
+}
+
+.animate-scan {
+  animation: scan 3s linear infinite;
+}
