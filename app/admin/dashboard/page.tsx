@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { Menu } from 'lucide-react';
 import Sidebar from '@/components/admin/Sidebar';
 import DashboardOverview from '@/components/admin/DashboardOverview';
 import BookingTable from '@/components/admin/BookingTable';
@@ -17,9 +18,39 @@ export default function AdminDashboard() {
   const toast = useToast();
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'bookings' | 'schedule' | 'add-booking' | 'pricing'>('overview');
   // Bumping this signals child components to refetch their own data
   const [refreshSignal, setRefreshSignal] = useState(0);
+
+  // Lock body scroll when mobile drawer is open
+  useEffect(() => {
+    if (mobileSidebarOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [mobileSidebarOpen]);
+
+  // Close mobile drawer on Escape
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMobileSidebarOpen(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  // Compute today's date label for the topbar
+  const todayLabel = new Date().toLocaleDateString('id-ID', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
 
   const userRole = session?.user?.role || 'admin';
   const isAdminOrSuperadmin = userRole === 'admin' || userRole === 'superadmin';
@@ -175,20 +206,34 @@ export default function AdminDashboard() {
         setActiveTab={setActiveTab}
         onLogout={() => signOut()}
         userRole={userRole}
+        mobileOpen={mobileSidebarOpen}
+        onCloseMobile={() => setMobileSidebarOpen(false)}
       />
 
       <main
-        className={`transition-all duration-300 min-h-screen ${isSidebarOpen ? 'ml-64' : 'ml-20'}`}
+        className={`transition-all duration-300 min-h-screen lg:ml-64 ${isSidebarOpen ? 'lg:ml-64' : 'lg:ml-20'}`}
       >
         {/* Top Bar */}
-        <header className="glass-surface h-20 border-b border-emerald-900/10 sticky top-0 z-20 flex items-center justify-between px-8">
-          <div>
-            <p className="text-[11px] font-bold uppercase tracking-widest text-emerald-600/70">Admin Panel</p>
-            <h1 className="text-xl font-bold text-slate-800 leading-tight">
-              {getPageTitle()}
-            </h1>
+        <header className="glass-surface h-20 border-b border-emerald-900/10 sticky top-0 z-20 flex items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-3 min-w-0">
+            {/* Hamburger — mobile/tablet only */}
+            <button
+              onClick={() => setMobileSidebarOpen(true)}
+              className="lg:hidden p-2 -ml-1 text-slate-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-xl transition-colors"
+              aria-label="Buka menu"
+            >
+              <Menu className="w-6 h-6" />
+            </button>
+            <div className="min-w-0">
+              <p className="text-[11px] font-bold uppercase tracking-widest text-emerald-600/70 hidden sm:block">Admin Panel</p>
+              <h1 className="text-lg sm:text-xl font-bold text-slate-800 leading-tight truncate">
+                {getPageTitle()}
+              </h1>
+              {/* Today's date — visible on md+ */}
+              <p className="hidden md:block text-xs text-slate-400 mt-0.5">{todayLabel}</p>
+            </div>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4 shrink-0">
             {userRole === 'superadmin' && (
               <span className="hidden sm:inline-flex px-3 py-1.5 bg-gradient-to-r from-purple-500 to-indigo-500 text-white text-[11px] font-bold rounded-full shadow-md shadow-purple-500/25 tracking-wide">
                 SUPER ADMIN
@@ -198,7 +243,7 @@ export default function AdminDashboard() {
               <span className="text-sm font-semibold text-slate-700">{session.user?.name}</span>
               <span className="text-xs text-slate-400">{session.user?.email}</span>
             </div>
-            <div className={`h-11 w-11 rounded-2xl flex items-center justify-center font-bold text-white shadow-lg ${userRole === 'superadmin'
+            <div className={`h-10 w-10 sm:h-11 sm:w-11 rounded-2xl flex items-center justify-center font-bold text-white shadow-lg ${userRole === 'superadmin'
               ? 'bg-gradient-to-br from-purple-500 to-indigo-500 shadow-purple-500/25'
               : 'brand-gradient shadow-emerald-500/25'}`}>
               {session.user?.name?.charAt(0) || 'A'}
@@ -207,7 +252,7 @@ export default function AdminDashboard() {
         </header>
 
         {/* Content Area */}
-        <div key={activeTab} className="p-6 lg:p-8 animate-pop-in">
+        <div key={activeTab} className="p-4 sm:p-6 lg:p-8 animate-pop-in">
           {activeTab === 'overview' && (
             <DashboardOverview
               onViewAllBookings={() => setActiveTab('bookings')}

@@ -48,6 +48,10 @@ interface OverviewStats {
   revenueByDate: { date: string; revenue: number }[];
   weeklyTrend: { day: string; bookings: number }[];
   recent: AdminBooking[];
+  thisWeekBookings?: number;
+  prevWeekBookings?: number;
+  thisWeekRevenue?: number;
+  prevWeekRevenue?: number;
 }
 
 const COLORS = {
@@ -64,6 +68,7 @@ export default function DashboardOverview({ onViewAllBookings }: DashboardOvervi
   const [data, setData] = useState<OverviewStats>({
     total: 0, pending: 0, confirmed: 0, cancelled: 0, revenue: 0,
     revenueByDate: [], weeklyTrend: [], recent: [],
+    thisWeekBookings: 0, prevWeekBookings: 0, thisWeekRevenue: 0, prevWeekRevenue: 0,
   });
 
   useEffect(() => {
@@ -102,6 +107,17 @@ export default function DashboardOverview({ onViewAllBookings }: DashboardOvervi
   ].filter(item => item.value > 0), [stats.confirmed, stats.pending, stats.cancelled]);
 
   const weeklyTrend = data.weeklyTrend;
+
+  // Compute week-over-week percentage change (this vs last week).
+  // Returns null when there is no baseline to compare against.
+  const pctChange = (curr?: number, prev?: number): number | null => {
+    if (curr == null || prev == null) return null;
+    if (prev === 0) return curr > 0 ? 100 : 0;
+    return Math.round(((curr - prev) / prev) * 100);
+  };
+
+  const bookingsTrend = pctChange(data.thisWeekBookings, data.prevWeekBookings);
+  const revenueTrend = pctChange(data.thisWeekRevenue, data.prevWeekRevenue);
 
   // Export fetches all rows from the server
   const handleExport = async (format: 'csv' | 'excel' | 'full') => {
@@ -216,6 +232,11 @@ export default function DashboardOverview({ onViewAllBookings }: DashboardOvervi
           value={stats.total}
           icon={Calendar}
           color="emerald"
+          trend={bookingsTrend != null ? {
+            value: Math.abs(bookingsTrend),
+            label: 'vs minggu lalu',
+            isPositive: bookingsTrend >= 0,
+          } : undefined}
         />
         <StatCard
           title="Pending Approval"
@@ -234,6 +255,11 @@ export default function DashboardOverview({ onViewAllBookings }: DashboardOvervi
           value={formatPrice(stats.revenue)}
           icon={DollarSign}
           color="blue"
+          trend={revenueTrend != null ? {
+            value: Math.abs(revenueTrend),
+            label: 'vs minggu lalu',
+            isPositive: revenueTrend >= 0,
+          } : undefined}
         />
       </div>
 

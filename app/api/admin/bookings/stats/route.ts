@@ -20,6 +20,10 @@ export async function GET() {
     revenueByDate: [] as { date: string; revenue: number }[],
     weeklyTrend: [] as { day: string; bookings: number }[],
     recent: [] as unknown[],
+    thisWeekBookings: 0,
+    prevWeekBookings: 0,
+    thisWeekRevenue: 0,
+    prevWeekRevenue: 0,
   };
 
   if (!process.env.DATABASE_URL) {
@@ -128,6 +132,36 @@ export async function GET() {
       .orderBy(desc(bookings.createdAt))
       .limit(5);
 
+    // Week-over-week: bookings created this week vs previous week
+    const [wowRow] = await db
+      .select({
+        thisWeekBookings: sql<number>`coalesce(sum(case when ${bookings.createdAt} >= date_trunc('week', now()) then 1 else 0 end), 0)::int`,
+        prevWeekBookings: sql<number>`coalesce(sum(case when ${bookings.createdAt} >= date_trunc('week', now()) - interval '7 days' and ${bookings.createdAt} < date_trunc('week', now()) then 1 else 0 end), 0)::int`,
+        thisWeekRevenue: sql<number>`
+          coalesce(sum(
+            case when ${bookings.createdAt} >= date_trunc('week', now()) and ${bookings.status} = 'confirmed' then
+              case
+                when ${bookings.paymentStatus} = 'paid' then ${bookings.totalPrice}
+                when ${bookings.paymentStatus} = 'dp' then coalesce(${bookings.dpAmount}, 0)
+                else 0
+              end
+            else 0 end
+          ), 0)::bigint
+        `,
+        prevWeekRevenue: sql<number>`
+          coalesce(sum(
+            case when ${bookings.createdAt} >= date_trunc('week', now()) - interval '7 days' and ${bookings.createdAt} < date_trunc('week', now()) and ${bookings.status} = 'confirmed' then
+              case
+                when ${bookings.paymentStatus} = 'paid' then ${bookings.totalPrice}
+                when ${bookings.paymentStatus} = 'dp' then coalesce(${bookings.dpAmount}, 0)
+                else 0
+              end
+            else 0 end
+          ), 0)::bigint
+        `,
+      })
+      .from(bookings);
+
     return NextResponse.json({
       stats: {
         total,
@@ -140,6 +174,10 @@ export async function GET() {
         revenueByDate,
         weeklyTrend,
         recent,
+        thisWeekBookings: Number(wowRow?.thisWeekBookings || 0),
+        prevWeekBookings: Number(wowRow?.prevWeekBookings || 0),
+        thisWeekRevenue: Number(wowRow?.thisWeekRevenue || 0),
+        prevWeekRevenue: Number(wowRow?.prevWeekRevenue || 0),
       },
       usingDatabase: true,
     });

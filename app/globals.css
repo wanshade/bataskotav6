@@ -2,11 +2,20 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom styles to match the original design */
+/* Custom styles to match the original design.
+   The public site uses a dark theme; admin routes opt into a light
+   theme via .admin-shell on their root container. We avoid setting a
+   global dark background on body so scroll-bounce / overscroll on admin
+   pages never leaks dark pixels around the edges. */
 body {
+  font-family: 'Inter', sans-serif;
+}
+
+/* Public (dark) areas explicitly opt in. The root marketing layout sets
+   this on a wrapper so the rest of the app stays light-friendly. */
+.public-dark {
   background-color: #050505;
   color: #ffffff;
-  font-family: 'Inter', sans-serif;
 }
 
 /* Admin dashboard needs dark text on light backgrounds */
@@ -98,12 +107,14 @@ html {
    PREMIUM ADMIN DASHBOARD DESIGN SYSTEM
    ============================================ */
 
-/* Refined background for the admin shell */
+/* Refined background for the admin shell. Also resets the inherited
+   white body text color so admin content defaults to dark slate. */
 .admin-shell {
   background:
     radial-gradient(1200px 600px at 100% -10%, rgba(20, 124, 96, 0.06), transparent 60%),
     radial-gradient(900px 500px at -10% 110%, rgba(16, 90, 71, 0.05), transparent 55%),
     linear-gradient(180deg, #f6f9f8 0%, #f1f5f4 100%);
+  color: #1e293b;
 }
 
 /* Premium card surface */
@@ -203,6 +214,44 @@ html {
   box-shadow: 0 10px 25px -10px rgba(20, 124, 96, 0.55);
 }
 
+/* Reusable card section header (icon + title + subtitle) for consistency
+   across Dashboard cards (charts, recent bookings, etc.). */
+.card-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.card-section-header__lead {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.card-section-header__icon {
+  padding: 0.625rem;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  box-shadow: 0 10px 20px -8px rgba(16, 24, 40, 0.18);
+}
+
+.card-section-header__title {
+  font-weight: 700;
+  color: #1e293b;
+  font-size: 1rem;
+  line-height: 1.25;
+}
+
+.card-section-header__subtitle {
+  font-size: 0.8125rem;
+  color: #94a3b8;
+}
+
 /* ============================================
    TOAST NOTIFICATIONS
    ============================================ */
@@ -231,4 +280,43 @@ html {
 
 .toast-progress {
   animation: toastProgress linear forwards;
+}
+
+/* ============================================
+   LOGIN LOADING OVERLAY
+   ============================================ */
+@keyframes loginOverlayIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes loginBrandFloat {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-8px) scale(1.04); }
+}
+
+@keyframes loginRingExpand {
+  0% { transform: scale(0.6); opacity: 0.7; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+
+@keyframes loginStatusDot {
+  0%, 80%, 100% { opacity: 0.25; transform: scale(0.8); }
+  40% { opacity: 1; transform: scale(1); }
+}
+
+.login-overlay {
+  animation: loginOverlayIn 0.25s ease-out both;
+}
+
+.login-brand-float {
+  animation: loginBrandFloat 1.8s ease-in-out infinite;
+}
+
+.login-ring {
+  animation: loginRingExpand 2s ease-out infinite;
+}
+
+.login-status-dot {
+  animation: loginStatusDot 1.4s ease-in-out infinite both;
 }
