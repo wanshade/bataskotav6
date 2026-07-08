@@ -21,6 +21,8 @@ import { Booking } from '@/lib/schema';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import ReceiptGenerator from './ReceiptGenerator';
 import { exportToCSV, exportToExcel } from '@/lib/export';
+import { Calendar as DatePickerCalendar } from '@/components/ui/Calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/Popover';
 
 interface AdminBooking extends Booking {
   id: number;
@@ -47,6 +49,15 @@ interface BookingStats {
 }
 
 const PAGE_SIZE = 20;
+
+const emptyBookingStats = (): BookingStats => ({
+  total: 0,
+  pending: 0,
+  confirmed: 0,
+  revenue: 0,
+  pendingRevenue: 0,
+  dpCount: 0,
+});
 
 const toDateInputValue = (date: Date): string => {
   const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
@@ -94,18 +105,17 @@ export default function BookingTable({
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'confirmed' | 'cancelled'>('all');
   const [dateFilter, setDateFilter] = useState('');
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
 
   // Server-driven data
   const [bookings, setBookings] = useState<AdminBooking[]>([]);
-  const [dateBookings, setDateBookings] = useState<AdminBooking[]>([]);
+  const [dateStats, setDateStats] = useState<BookingStats>(emptyBookingStats);
   const [loading, setLoading] = useState(true);
-  const [dateBookingsLoading, setDateBookingsLoading] = useState(false);
+  const [dateStatsLoading, setDateStatsLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
-  const [stats, setStats] = useState<BookingStats>({
-    total: 0, pending: 0, confirmed: 0, revenue: 0, pendingRevenue: 0, dpCount: 0,
-  });
+  const [stats, setStats] = useState<BookingStats>(emptyBookingStats);
   const [exporting, setExporting] = useState(false);
 
   const [receiptBooking, setReceiptBooking] = useState<AdminBooking | null>(null);
@@ -253,58 +263,42 @@ _Setiap permainan punya cerita._ ⚽✨
     setDateFilter(toDateInputValue(date));
   }, []);
 
-  const dateScopedStats = useMemo<BookingStats>(() => {
-    return dateBookings.reduce<BookingStats>((acc, booking) => {
-      acc.total += 1;
-      if (booking.status === 'pending') acc.pending += 1;
-      if (booking.status === 'confirmed') {
-        acc.confirmed += 1;
-        const totalPrice = Number(booking.totalPrice || booking.price || 0);
-        const dpAmount = Number(booking.dpAmount || 0);
-
-        if (booking.paymentStatus === 'paid') {
-          acc.revenue += totalPrice;
-        } else if (booking.paymentStatus === 'dp') {
-          acc.revenue += dpAmount;
-          acc.pendingRevenue += Math.max(totalPrice - dpAmount, 0);
-          acc.dpCount += 1;
-        } else {
-          acc.pendingRevenue += totalPrice;
-        }
-      }
-      return acc;
-    }, { total: 0, pending: 0, confirmed: 0, revenue: 0, pendingRevenue: 0, dpCount: 0 });
-  }, [dateBookings]);
-
-  const displayedStats = dateFilter ? dateScopedStats : stats;
+  const displayedStats = dateFilter ? dateStats : stats;
 
   useEffect(() => {
     if (!dateFilter || !selectedDateLabel) {
-      setDateBookings([]);
+      setDateStats(emptyBookingStats());
       return;
     }
 
     const controller = new AbortController();
-    const fetchDateBookings = async () => {
-      setDateBookingsLoading(true);
+    const fetchDateStats = async () => {
+      setDateStatsLoading(true);
       try {
         const res = await fetch(
-          `/api/admin/bookings/by-date?date=${encodeURIComponent(selectedDateLabel)}`,
+          `/api/admin/bookings/by-date?date=${encodeURIComponent(selectedDateLabel)}&stats=1`,
           { signal: controller.signal }
         );
         if (res.ok) {
           const data = await res.json();
-          setDateBookings(data.bookings || []);
+          setDateStats({
+            total: Number(data.stats?.total || 0),
+            pending: Number(data.stats?.pending || 0),
+            confirmed: Number(data.stats?.confirmed || 0),
+            revenue: Number(data.stats?.revenue || 0),
+            pendingRevenue: Number(data.stats?.pendingRevenue || 0),
+            dpCount: Number(data.stats?.dpCount || 0),
+          });
         }
       } catch (error) {
         if (error instanceof DOMException && error.name === 'AbortError') return;
-        console.error('Failed to fetch date bookings:', error);
+        console.error('Failed to fetch date stats:', error);
       } finally {
-        if (!controller.signal.aborted) setDateBookingsLoading(false);
+        if (!controller.signal.aborted) setDateStatsLoading(false);
       }
     };
 
-    fetchDateBookings();
+    fetchDateStats();
     return () => controller.abort();
   }, [dateFilter, selectedDateLabel, refreshSignal]);
 
@@ -330,9 +324,10 @@ _Setiap permainan punya cerita._ ⚽✨
       if (debouncedSearch) params.set('search', debouncedSearch);
       if (dateFilter && selectedDateLabel) params.set('date', selectedDateLabel);
 
+      const statsPromise = dateFilter ? null : fetch('/api/admin/bookings/stats');
       const [listRes, statsRes] = await Promise.all([
         fetch(`/api/admin/bookings/list?${params.toString()}`),
-        fetch('/api/admin/bookings/stats'),
+        statsPromise ?? Promise.resolve(null),
       ]);
 
       if (listRes.ok) {
@@ -341,7 +336,7 @@ _Setiap permainan punya cerita._ ⚽✨
         setTotal(data.total || 0);
         setTotalPages(data.totalPages || 0);
       }
-      if (statsRes.ok) {
+      if (statsRes?.ok) {
         const data = await statsRes.json();
         if (data.stats) {
           setStats({
@@ -512,20 +507,54 @@ _Setiap permainan punya cerita._ ⚽✨
                   <FilterX className="w-4 h-4" />
                   Semua tanggal
                 </button>
-                <div className="relative">
-                  <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 pointer-events-none" />
-                  <input
-                    type="date"
-                    value={dateFilter}
-                    onChange={(e) => setDateFilter(e.target.value)}
-                    className={`w-full sm:w-48 pl-12 pr-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#147c60]/20 focus:border-[#147c60] text-slate-700 font-semibold transition-all ${
-                      dateFilter
-                        ? 'bg-white border-[#147c60]/40'
-                        : 'bg-slate-50/60 border-slate-200 text-slate-500'
-                    }`}
-                    aria-label="Filter tanggal booking"
-                  />
-                </div>
+                <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
+                  <PopoverTrigger asChild>
+                    <button
+                      type="button"
+                      className={`inline-flex w-full sm:w-56 items-center justify-start gap-2 rounded-xl border px-4 py-3 text-left text-sm font-bold transition-colors focus:outline-none focus:ring-2 focus:ring-[#147c60]/20 ${
+                        dateFilter
+                          ? 'border-[#147c60]/40 bg-white text-slate-700 hover:bg-emerald-50'
+                          : 'border-slate-200 bg-slate-50/60 text-slate-500 hover:bg-slate-50'
+                      }`}
+                      aria-label="Pilih tanggal booking"
+                    >
+                      <Calendar className="h-5 w-5 text-slate-400" />
+                      <span className="truncate">
+                        {dateFilter && selectedDateLabel ? selectedDateLabel : 'Pilih tanggal'}
+                      </span>
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    side="bottom"
+                    align="start"
+                    avoidCollisions={false}
+                    className="w-auto font-sans"
+                  >
+                    <div className="border-b border-slate-100 bg-gradient-to-r from-emerald-50 to-white px-4 py-3">
+                      <p className="text-sm font-black text-slate-900">Pilih tanggal booking</p>
+                      <p className="mt-0.5 text-xs font-medium text-slate-500">
+                        Gunakan panah untuk pindah bulan.
+                      </p>
+                    </div>
+                    <DatePickerCalendar
+                      mode="single"
+                      fixedWeeks
+                      selected={selectedDate ?? undefined}
+                      defaultMonth={selectedDate ?? new Date()}
+                      onSelect={(date) => {
+                        if (!date) return;
+                        setDateFilter(toDateInputValue(date));
+                        setDatePickerOpen(false);
+                      }}
+                      formatters={{
+                        formatCaption: (month) =>
+                          month.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }),
+                        formatWeekdayName: (date) =>
+                          date.toLocaleDateString('id-ID', { weekday: 'short' }),
+                      }}
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
               <div className="flex gap-2">
                 <button
@@ -571,7 +600,7 @@ _Setiap permainan punya cerita._ ⚽✨
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            {(dateBookingsLoading || loading) && (
+            {(dateStatsLoading || loading) && (
               <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 text-[#147c60] text-xs font-bold">
                 <span className="w-3 h-3 border-2 border-emerald-200 border-t-[#147c60] rounded-full animate-spin" />
                 Memuat
@@ -583,10 +612,10 @@ _Setiap permainan punya cerita._ ⚽✨
             {dateFilter && (
               <>
                 <span className="px-3 py-1.5 rounded-full bg-amber-50 text-amber-700 text-xs font-bold">
-                  {dateScopedStats.pending} Pending
+                  {dateStats.pending} Pending
                 </span>
                 <span className="px-3 py-1.5 rounded-full bg-green-50 text-green-700 text-xs font-bold">
-                  {dateScopedStats.confirmed} Confirmed
+                  {dateStats.confirmed} Confirmed
                 </span>
               </>
             )}

@@ -49,33 +49,45 @@ export async function GET(request: NextRequest) {
     }
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
-    // Total count for pagination
-    const [{ count }] = await db
+    if (isExport) {
+      const rows = await db
+        .select()
+        .from(bookings)
+        .where(whereClause)
+        .orderBy(desc(bookings.createdAt));
+
+      return NextResponse.json({
+        bookings: rows,
+        total: rows.length,
+        page: 1,
+        limit: rows.length,
+        totalPages: 1,
+        usingDatabase: true,
+      });
+    }
+
+    const countQuery = db
       .select({ count: sql<number>`count(*)::int` })
       .from(bookings)
       .where(whereClause);
 
-    const total = Number(count);
-
-    let query = db
+    const rowsQuery = db
       .select()
       .from(bookings)
       .where(whereClause)
       .orderBy(desc(bookings.createdAt))
-      .$dynamic();
+      .limit(limit)
+      .offset((page - 1) * limit);
 
-    if (!isExport) {
-      query = query.limit(limit).offset((page - 1) * limit);
-    }
-
-    const rows = await query;
+    const [[{ count }], rows] = await Promise.all([countQuery, rowsQuery]);
+    const total = Number(count);
 
     return NextResponse.json({
       bookings: rows,
       total,
-      page: isExport ? 1 : page,
-      limit: isExport ? total : limit,
-      totalPages: isExport ? 1 : Math.ceil(total / limit),
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
       usingDatabase: true,
     });
   } catch (error) {

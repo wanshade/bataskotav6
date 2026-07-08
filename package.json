@@ -16,6 +16,7 @@
     "db:migrate-slots": "npx tsx scripts/migrate-to-1hour-slots.ts"
   },
   "dependencies": {
+    "@radix-ui/react-popover": "^1.1.19",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.4.0",
     "@types/three": "^0.181.0",
@@ -31,6 +32,7 @@
     "postcss": "^8.4.32",
     "postgres": "^3.4.7",
     "react": "^19.2.0",
+    "react-day-picker": "^10.0.1",
     "react-dom": "^19.2.0",
     "recharts": "^3.7.0",
     "tailwindcss": "^3.4.0",

@@ -29,6 +29,9 @@ export const bookings = pgTable('bookings', {
   createdAtIdx: index('bookings_created_at_idx').on(table.createdAt),
   bookingDateIdx: index('bookings_booking_date_idx').on(table.bookingDate),
   teamNameIdx: index('bookings_team_name_idx').on(table.teamName),
+  statusCreatedAtIdx: index('bookings_status_created_at_idx').on(table.status, table.createdAt.desc()),
+  bookingDateCreatedAtIdx: index('bookings_booking_date_created_at_idx').on(table.bookingDate, table.createdAt.desc()),
+  bookingDateStatusCreatedAtIdx: index('bookings_booking_date_status_created_at_idx').on(table.bookingDate, table.status, table.createdAt.desc()),
 }));
 
 // Pricing per day group + time slot (editable from admin dashboard)
