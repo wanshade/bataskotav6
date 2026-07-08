@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { and, eq, inArray } from 'drizzle-orm';
 import * as dotenv from 'dotenv';
 
 // Load env variables explicitly
@@ -37,39 +38,46 @@ export async function POST(request: NextRequest) {
 
     // Check if DATABASE_URL is configured
     const hasDatabaseConfigured = !!process.env.DATABASE_URL;
-    console.log('🔍 DATABASE_URL check:', {
-      exists: hasDatabaseConfigured,
-      value: process.env.DATABASE_URL ? process.env.DATABASE_URL.substring(0, 20) + '...' : 'not set'
-    });
 
     if (hasDatabaseConfigured) {
-      // Try to save to database
-      console.log('🗄️ Attempting to save to database...');
-      console.log('DATABASE_URL exists:', !!process.env.DATABASE_URL);
-      console.log('DATABASE_URL value:', process.env.DATABASE_URL?.substring(0, 30) + '...');
-      
       try {
-        // Dynamic import with error handling
-        let db, bookings, generateBookingId;
-        
-        try {
-          console.log('📦 Importing database modules...');
-          const dbModule = await import('@/lib/db');
-          const schemaModule = await import('@/lib/schema');
-          db = dbModule.db;
-          bookings = schemaModule.bookings;
-          generateBookingId = schemaModule.generateBookingId;
-          console.log('✅ Database modules imported successfully');
-        } catch (importError) {
-          console.error('❌ Failed to import database modules:', importError);
-          throw new Error('Database connection failed');
+        const { db } = await import('@/lib/db');
+        const { bookings, generateBookingId } = await import('@/lib/schema');
+        const { hasTimeOverlap } = await import('@/lib/schedule');
+
+        // --- DOUBLE BOOKING PREVENTION ---
+        // Check for existing bookings on the same date with overlapping time slots
+        const requestedSlots = timeSlot.split(', ').map((s: string) => s.trim());
+
+        const existingBookings = await db
+          .select()
+          .from(bookings)
+          .where(
+            and(
+              eq(bookings.bookingDate, bookingDate),
+              inArray(bookings.status, ['pending', 'confirmed'])
+            )
+          );
+
+        // Check each requested slot against existing bookings
+        for (const reqSlot of requestedSlots) {
+          const conflict = existingBookings.find(b =>
+            b.timeSlot.split(', ').some(ts => hasTimeOverlap(ts, reqSlot))
+          );
+          if (conflict) {
+            return NextResponse.json(
+              {
+                error: 'Slot sudah dipesan',
+                message: `Slot ${reqSlot} pada ${bookingDate} sudah dipesan oleh tim lain. Silakan pilih waktu lain.`,
+              },
+              { status: 409 }
+            );
+          }
         }
 
         // Generate unique booking ID
         const bookingId = generateBookingId();
-        console.log('🎫 Generated booking ID:', bookingId);
 
-        console.log('💾 Inserting booking into database...');
         const [newBooking] = await db
           .insert(bookings)
           .values({
@@ -88,8 +96,6 @@ export async function POST(request: NextRequest) {
           })
           .returning();
 
-        console.log('✅ Booking saved to database:', newBooking);
-
         return NextResponse.json(
           { 
             success: true, 
@@ -101,10 +107,7 @@ export async function POST(request: NextRequest) {
         );
       } catch (dbError) {
         const errorMessage = dbError instanceof Error ? dbError.message : String(dbError);
-        console.error('❌ Database error, falling back to temporary storage:', errorMessage);
-        console.error('❌ Full error details:', dbError);
-        console.error('❌ Error stack:', dbError instanceof Error ? dbError.stack : 'No stack');
-        // Return error response instead of silently falling back
+        console.error('Database error:', errorMessage);
         return NextResponse.json(
           {
             success: false,
@@ -118,7 +121,6 @@ export async function POST(request: NextRequest) {
     }
 
     // Fallback: Save to temporary in-memory storage
-    // Generate booking ID for temporary storage too
     const generateTempBookingId = () => {
       const date = new Date().toISOString().slice(0, 10).replace(/-/g, '');
       const random = Math.random().toString(36).substring(2, 6).toUpperCase();
@@ -143,9 +145,6 @@ export async function POST(request: NextRequest) {
     };
     
     tempBookings.push(tempBooking);
-    
-    console.log('Booking saved temporarily (not in database):', tempBooking);
-    console.log('Total temporary bookings:', tempBookings.length);
 
     return NextResponse.json(
       { 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
+import { and, eq, inArray } from 'drizzle-orm';
 
 export async function POST(request: NextRequest) {
   try {
@@ -49,6 +50,35 @@ export async function POST(request: NextRequest) {
       try {
         const { db } = await import('@/lib/db');
         const { bookings, generateBookingId } = await import('@/lib/schema');
+        const { hasTimeOverlap } = await import('@/lib/schedule');
+
+        // --- DOUBLE BOOKING PREVENTION ---
+        const requestedSlots = timeSlot.split(', ').map((s: string) => s.trim());
+
+        const existingBookings = await db
+          .select()
+          .from(bookings)
+          .where(
+            and(
+              eq(bookings.bookingDate, bookingDate),
+              inArray(bookings.status, ['pending', 'confirmed'])
+            )
+          );
+
+        for (const reqSlot of requestedSlots) {
+          const conflict = existingBookings.find(b =>
+            b.timeSlot.split(', ').some(ts => hasTimeOverlap(ts, reqSlot))
+          );
+          if (conflict) {
+            return NextResponse.json(
+              {
+                error: 'Slot sudah dipesan',
+                message: `Slot ${reqSlot} pada ${bookingDate} sudah dipesan oleh ${conflict.teamName}. Silakan pilih waktu lain.`,
+              },
+              { status: 409 }
+            );
+          }
+        }
 
         // Generate unique booking ID
         const bookingId = generateBookingId();

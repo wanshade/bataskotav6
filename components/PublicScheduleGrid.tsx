@@ -172,7 +172,7 @@ const getBookingForSlot = (slotLabel: string): Booking | undefined => {
     setError(null);
 
     const priceFormatted = formatPrice(totalPrice);
-    const formattedDate = selectedDate.toLocaleDateString("id-ID", {
+    const formattedDateVal = selectedDate.toLocaleDateString("id-ID", {
       weekday: "long",
       day: "numeric",
       month: "long",
@@ -181,6 +181,31 @@ const getBookingForSlot = (slotLabel: string): Booking | undefined => {
     const timeSlotStr = selectedSlots.join(", ");
 
     try {
+      // Re-fetch bookings to get latest data before submitting
+      try {
+        const freshRes = await fetch("/api/bookings");
+        if (freshRes.ok) {
+          const freshData = await freshRes.json();
+          if (freshData.bookings) {
+            setBookings(freshData.bookings);
+            const conflictSlot = selectedSlots.find(slot =>
+              freshData.bookings.some((b: Booking) =>
+                b.bookingDate === formattedDateVal &&
+                b.timeSlot.split(", ").some((ts: string) => hasTimeOverlap(ts, slot)) &&
+                (b.status === "confirmed" || b.status === "pending")
+              )
+            );
+            if (conflictSlot) {
+              setError(`Slot ${conflictSlot} sudah dipesan oleh tim lain. Silakan pilih waktu lain.`);
+              setIsSubmitting(false);
+              return;
+            }
+          }
+        }
+      } catch {
+        // Continue — server will catch duplicates
+      }
+
       const response = await fetch("/api/bookings", {
         method: "POST",
         headers: {
@@ -189,7 +214,7 @@ const getBookingForSlot = (slotLabel: string): Booking | undefined => {
         body: JSON.stringify({
           teamName,
           phone,
-          bookingDate: formattedDate,
+          bookingDate: formattedDateVal,
           timeSlot: timeSlotStr,
           price: priceFormatted,
           dokumentasi: addDokumentasi,
@@ -201,6 +226,17 @@ const getBookingForSlot = (slotLabel: string): Booking | undefined => {
         const errorData = await response.json();
         const errorMessage =
           errorData.message || errorData.error || "Gagal membuat pemesanan";
+        // If conflict (409), refresh bookings to update UI
+        if (response.status === 409) {
+          try {
+            const refreshRes = await fetch("/api/bookings");
+            if (refreshRes.ok) {
+              const refreshData = await refreshRes.json();
+              if (refreshData.bookings) setBookings(refreshData.bookings);
+            }
+          } catch { /* ignore */ }
+          setSelectedSlots([]);
+        }
         throw new Error(errorMessage);
       }
 

@@ -126,6 +126,35 @@ const BookingSection: React.FC = () => {
     setError(null);
 
     try {
+      // Re-fetch bookings to get latest data before submitting
+      try {
+        const freshRes = await fetch('/api/bookings');
+        if (freshRes.ok) {
+          const freshData = await freshRes.json();
+          if (freshData.bookings) {
+            setBookings(freshData.bookings);
+            // Re-check selected slots against fresh data
+            const formattedDateCheck = selectedDate.toLocaleDateString('id-ID', {
+              weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+            });
+            const conflictSlot = selectedSlots.find(slot =>
+              freshData.bookings.some((b: Booking) =>
+                b.bookingDate === formattedDateCheck &&
+                b.timeSlot.split(', ').some((ts: string) => hasTimeOverlap(ts, slot)) &&
+                (b.status === 'confirmed' || b.status === 'pending')
+              )
+            );
+            if (conflictSlot) {
+              setError(`Slot ${conflictSlot} sudah dipesan oleh tim lain. Silakan pilih waktu lain.`);
+              setIsSubmitting(false);
+              return;
+            }
+          }
+        }
+      } catch {
+        // Continue with submission even if refresh fails — server will catch it
+      }
+
       // Format date for display
       const formattedDate = selectedDate.toLocaleDateString('id-ID', {
         weekday: 'long',
@@ -156,8 +185,18 @@ const BookingSection: React.FC = () => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        // Show the detailed message from the API
         const errorMessage = errorData.message || errorData.error || 'Gagal membuat pemesanan';
+        // If conflict (409), refresh bookings to update UI
+        if (response.status === 409) {
+          try {
+            const refreshRes = await fetch('/api/bookings');
+            if (refreshRes.ok) {
+              const refreshData = await refreshRes.json();
+              if (refreshData.bookings) setBookings(refreshData.bookings);
+            }
+          } catch { /* ignore */ }
+          setSelectedSlots([]);
+        }
         throw new Error(errorMessage);
       }
 
