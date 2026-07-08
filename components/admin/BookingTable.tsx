@@ -14,10 +14,11 @@ import {
   Wallet,
   CreditCard,
   Trash2,
-  Pencil
+  Pencil,
+  FilterX
 } from 'lucide-react';
 import { Booking } from '@/lib/schema';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import ReceiptGenerator from './ReceiptGenerator';
 import { exportToCSV, exportToExcel } from '@/lib/export';
 
@@ -47,6 +48,25 @@ interface BookingStats {
 
 const PAGE_SIZE = 20;
 
+const toDateInputValue = (date: Date): string => {
+  const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+  return localDate.toISOString().slice(0, 10);
+};
+
+const parseDateInputValue = (value: string): Date | null => {
+  const [year, month, day] = value.split('-').map(Number);
+  if (!year || !month || !day) return null;
+  return new Date(year, month - 1, day);
+};
+
+const formatBookingDateLabel = (date: Date): string =>
+  date.toLocaleDateString('id-ID', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+
 // Compact rupiah: shows JT for millions, RB for thousands.
 const formatCompactRupiah = (amount: number): string => {
   if (amount >= 1_000_000) {
@@ -73,10 +93,13 @@ export default function BookingTable({
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'confirmed' | 'cancelled'>('all');
+  const [dateFilter, setDateFilter] = useState('');
 
   // Server-driven data
   const [bookings, setBookings] = useState<AdminBooking[]>([]);
+  const [dateBookings, setDateBookings] = useState<AdminBooking[]>([]);
   const [loading, setLoading] = useState(true);
+  const [dateBookingsLoading, setDateBookingsLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
@@ -216,6 +239,75 @@ _Setiap permainan punya cerita._ ⚽✨
     window.open(whatsappUrl, '_blank');
   };
 
+  const selectedDate = useMemo(() => (
+    dateFilter ? parseDateInputValue(dateFilter) : null
+  ), [dateFilter]);
+
+  const selectedDateLabel = useMemo(() => (
+    selectedDate ? formatBookingDateLabel(selectedDate) : ''
+  ), [selectedDate]);
+
+  const setDateFromOffset = useCallback((offset: number) => {
+    const date = new Date();
+    date.setDate(date.getDate() + offset);
+    setDateFilter(toDateInputValue(date));
+  }, []);
+
+  const dateScopedStats = useMemo<BookingStats>(() => {
+    return dateBookings.reduce<BookingStats>((acc, booking) => {
+      acc.total += 1;
+      if (booking.status === 'pending') acc.pending += 1;
+      if (booking.status === 'confirmed') {
+        acc.confirmed += 1;
+        const totalPrice = Number(booking.totalPrice || booking.price || 0);
+        const dpAmount = Number(booking.dpAmount || 0);
+
+        if (booking.paymentStatus === 'paid') {
+          acc.revenue += totalPrice;
+        } else if (booking.paymentStatus === 'dp') {
+          acc.revenue += dpAmount;
+          acc.pendingRevenue += Math.max(totalPrice - dpAmount, 0);
+          acc.dpCount += 1;
+        } else {
+          acc.pendingRevenue += totalPrice;
+        }
+      }
+      return acc;
+    }, { total: 0, pending: 0, confirmed: 0, revenue: 0, pendingRevenue: 0, dpCount: 0 });
+  }, [dateBookings]);
+
+  const displayedStats = dateFilter ? dateScopedStats : stats;
+
+  useEffect(() => {
+    if (!dateFilter || !selectedDateLabel) {
+      setDateBookings([]);
+      return;
+    }
+
+    const controller = new AbortController();
+    const fetchDateBookings = async () => {
+      setDateBookingsLoading(true);
+      try {
+        const res = await fetch(
+          `/api/admin/bookings/by-date?date=${encodeURIComponent(selectedDateLabel)}`,
+          { signal: controller.signal }
+        );
+        if (res.ok) {
+          const data = await res.json();
+          setDateBookings(data.bookings || []);
+        }
+      } catch (error) {
+        if (error instanceof DOMException && error.name === 'AbortError') return;
+        console.error('Failed to fetch date bookings:', error);
+      } finally {
+        if (!controller.signal.aborted) setDateBookingsLoading(false);
+      }
+    };
+
+    fetchDateBookings();
+    return () => controller.abort();
+  }, [dateFilter, selectedDateLabel, refreshSignal]);
+
   // Debounce search input (300ms)
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(searchQuery), 300);
@@ -225,7 +317,7 @@ _Setiap permainan punya cerita._ ⚽✨
   // Reset to page 1 when filters change
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearch, statusFilter]);
+  }, [debouncedSearch, statusFilter, dateFilter]);
 
   const fetchPage = useCallback(async () => {
     setLoading(true);
@@ -236,6 +328,7 @@ _Setiap permainan punya cerita._ ⚽✨
         status: statusFilter,
       });
       if (debouncedSearch) params.set('search', debouncedSearch);
+      if (dateFilter && selectedDateLabel) params.set('date', selectedDateLabel);
 
       const [listRes, statsRes] = await Promise.all([
         fetch(`/api/admin/bookings/list?${params.toString()}`),
@@ -266,7 +359,7 @@ _Setiap permainan punya cerita._ ⚽✨
     } finally {
       setLoading(false);
     }
-  }, [page, statusFilter, debouncedSearch]);
+  }, [page, statusFilter, debouncedSearch, dateFilter, selectedDateLabel]);
 
   useEffect(() => {
     fetchPage();
@@ -281,6 +374,7 @@ _Setiap permainan punya cerita._ ⚽✨
     try {
       const params = new URLSearchParams({ status: statusFilter, export: '1' });
       if (debouncedSearch) params.set('search', debouncedSearch);
+      if (dateFilter && selectedDateLabel) params.set('date', selectedDateLabel);
       const res = await fetch(`/api/admin/bookings/list?${params.toString()}`);
       if (res.ok) {
         const data = await res.json();
@@ -310,12 +404,12 @@ _Setiap permainan punya cerita._ ⚽✨
   }
 
   const statCards = [
-    { label: 'Total Bookings', value: String(stats.total), icon: Calendar, grad: 'from-emerald-500 to-teal-500', glow: 'shadow-emerald-500/20' },
-    { label: 'Pending', value: String(stats.pending), icon: Clock, grad: 'from-amber-500 to-orange-500', glow: 'shadow-amber-500/20' },
-    { label: 'Confirmed', value: String(stats.confirmed), icon: CheckCircle, grad: 'from-green-500 to-emerald-500', glow: 'shadow-green-500/20' },
-    { label: 'Status DP', value: String(stats.dpCount), icon: CreditCard, grad: 'from-sky-500 to-blue-500', glow: 'shadow-blue-500/20' },
-    { label: 'Diterima', value: formatCompactRupiah(stats.revenue), icon: Wallet, grad: 'from-emerald-500 to-green-600', glow: 'shadow-emerald-500/20' },
-    { label: 'Belum Dibayar', value: formatCompactRupiah(stats.pendingRevenue), icon: CreditCard, grad: 'from-orange-500 to-rose-500', glow: 'shadow-orange-500/20' },
+    { label: 'Total Bookings', value: String(displayedStats.total), icon: Calendar, grad: 'from-emerald-500 to-teal-500', glow: 'shadow-emerald-500/20' },
+    { label: 'Pending', value: String(displayedStats.pending), icon: Clock, grad: 'from-amber-500 to-orange-500', glow: 'shadow-amber-500/20' },
+    { label: 'Confirmed', value: String(displayedStats.confirmed), icon: CheckCircle, grad: 'from-green-500 to-emerald-500', glow: 'shadow-green-500/20' },
+    { label: 'Status DP', value: String(displayedStats.dpCount), icon: CreditCard, grad: 'from-sky-500 to-blue-500', glow: 'shadow-blue-500/20' },
+    { label: 'Diterima', value: formatCompactRupiah(displayedStats.revenue), icon: Wallet, grad: 'from-emerald-500 to-green-600', glow: 'shadow-emerald-500/20' },
+    { label: 'Belum Dibayar', value: formatCompactRupiah(displayedStats.pendingRevenue), icon: CreditCard, grad: 'from-orange-500 to-rose-500', glow: 'shadow-orange-500/20' },
   ];
 
   return (
@@ -337,72 +431,167 @@ _Setiap permainan punya cerita._ ⚽✨
       </div>
 
       {/* Toolbar */}
-      <div className="premium-card p-4 flex flex-col sm:flex-row justify-between gap-3">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Cari tim, ID booking, atau telepon..."
-            className="w-full pl-12 pr-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#147c60]/20 focus:border-[#147c60] text-slate-700 bg-slate-50/50 focus:bg-white placeholder:text-slate-400 transition-all"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-        <div className="flex gap-3">
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as 'all' | 'pending' | 'confirmed' | 'cancelled')}
-            className="px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#147c60]/20 focus:border-[#147c60] text-slate-700 bg-slate-50/50 font-medium transition-all cursor-pointer"
-          >
-            <option value="all">Semua Status</option>
-            <option value="pending">Pending</option>
-            <option value="confirmed">Confirmed</option>
-            <option value="cancelled">Cancelled</option>
-          </select>
-
-          {/* Export Menu */}
-          <div className="relative">
-            <button
-              onClick={() => setExportMenuOpen(!exportMenuOpen)}
-              disabled={exporting}
-              className="flex items-center gap-2 px-4 py-3 border border-slate-200 rounded-xl hover:bg-emerald-50 hover:border-emerald-200 text-slate-600 bg-white transition-all font-medium disabled:opacity-60"
+      <div className="premium-card p-4 space-y-3">
+        <div className="flex flex-col xl:flex-row justify-between gap-3">
+          <div className="relative flex-1 max-w-xl">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Cari tim, ID booking, atau telepon..."
+              className="w-full pl-12 pr-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#147c60]/20 focus:border-[#147c60] text-slate-700 bg-slate-50/50 focus:bg-white placeholder:text-slate-400 transition-all"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as 'all' | 'pending' | 'confirmed' | 'cancelled')}
+              className="w-full sm:w-44 px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#147c60]/20 focus:border-[#147c60] text-slate-700 bg-slate-50/50 font-medium transition-all cursor-pointer"
             >
-              <Download className="w-4 h-4" />
-              {exporting ? '...' : 'Export'}
-            </button>
-            {exportMenuOpen && (
-              <>
-                <div
-                  className="fixed inset-0 z-10"
-                  onClick={() => setExportMenuOpen(false)}
-                />
-                <div className="absolute right-0 mt-2 w-48 premium-card z-20 overflow-hidden p-1.5">
-                  <button
-                    onClick={() => { handleExport('csv'); setExportMenuOpen(false); }}
-                    disabled={exporting}
-                    className="w-full flex items-center gap-3 px-3.5 py-2.5 text-left text-slate-700 hover:bg-emerald-50 rounded-lg transition-colors disabled:opacity-50 text-sm font-medium"
-                  >
-                    <FileText className="w-4 h-4 text-slate-500" />
-                    Export as CSV
-                  </button>
-                  <button
-                    onClick={() => { handleExport('excel'); setExportMenuOpen(false); }}
-                    disabled={exporting}
-                    className="w-full flex items-center gap-3 px-3.5 py-2.5 text-left text-slate-700 hover:bg-emerald-50 rounded-lg transition-colors disabled:opacity-50 text-sm font-medium"
-                  >
-                    <FileSpreadsheet className="w-4 h-4 text-green-600" />
-                    Export as Excel
-                  </button>
+              <option value="all">Semua Status</option>
+              <option value="pending">Pending</option>
+              <option value="confirmed">Confirmed</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+
+            {/* Export Menu */}
+            <div className="relative">
+              <button
+                onClick={() => setExportMenuOpen(!exportMenuOpen)}
+                disabled={exporting}
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-3 border border-slate-200 rounded-xl hover:bg-emerald-50 hover:border-emerald-200 text-slate-600 bg-white transition-all font-medium disabled:opacity-60"
+              >
+                <Download className="w-4 h-4" />
+                {exporting ? '...' : 'Export'}
+              </button>
+              {exportMenuOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-10"
+                    onClick={() => setExportMenuOpen(false)}
+                  />
+                  <div className="absolute right-0 mt-2 w-48 premium-card z-20 overflow-hidden p-1.5">
+                    <button
+                      onClick={() => { handleExport('csv'); setExportMenuOpen(false); }}
+                      disabled={exporting}
+                      className="w-full flex items-center gap-3 px-3.5 py-2.5 text-left text-slate-700 hover:bg-emerald-50 rounded-lg transition-colors disabled:opacity-50 text-sm font-medium"
+                    >
+                      <FileText className="w-4 h-4 text-slate-500" />
+                      Export as CSV
+                    </button>
+                    <button
+                      onClick={() => { handleExport('excel'); setExportMenuOpen(false); }}
+                      disabled={exporting}
+                      className="w-full flex items-center gap-3 px-3.5 py-2.5 text-left text-slate-700 hover:bg-emerald-50 rounded-lg transition-colors disabled:opacity-50 text-sm font-medium"
+                    >
+                      <FileSpreadsheet className="w-4 h-4 text-green-600" />
+                      Export as Excel
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="border-t border-slate-100 pt-3">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-400 sm:mr-1">Periode</span>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <button
+                  type="button"
+                  onClick={() => setDateFilter('')}
+                  className={`inline-flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl border text-sm font-bold transition-colors ${
+                    dateFilter
+                      ? 'border-slate-200 text-slate-500 bg-white hover:bg-slate-50'
+                      : 'border-[#147c60] bg-emerald-50 text-[#147c60] shadow-sm shadow-emerald-100'
+                  }`}
+                >
+                  <FilterX className="w-4 h-4" />
+                  Semua tanggal
+                </button>
+                <div className="relative">
+                  <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 pointer-events-none" />
+                  <input
+                    type="date"
+                    value={dateFilter}
+                    onChange={(e) => setDateFilter(e.target.value)}
+                    className={`w-full sm:w-48 pl-12 pr-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#147c60]/20 focus:border-[#147c60] text-slate-700 font-semibold transition-all ${
+                      dateFilter
+                        ? 'bg-white border-[#147c60]/40'
+                        : 'bg-slate-50/60 border-slate-200 text-slate-500'
+                    }`}
+                    aria-label="Filter tanggal booking"
+                  />
                 </div>
-              </>
-            )}
+              </div>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setDateFromOffset(0)}
+                  className="px-3 py-2 rounded-lg border border-emerald-100 text-sm font-semibold text-[#147c60] bg-white hover:bg-emerald-50 transition-colors"
+                >
+                  Hari Ini
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDateFromOffset(1)}
+                  className="px-3 py-2 rounded-lg border border-emerald-100 text-sm font-semibold text-[#147c60] bg-white hover:bg-emerald-50 transition-colors"
+                >
+                  Besok
+                </button>
+              </div>
+            </div>
+            <div className="min-h-8 flex items-center">
+              <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold ${
+                dateFilter
+                  ? 'bg-emerald-50 text-[#147c60] border border-emerald-100'
+                  : 'bg-slate-100 text-slate-500 border border-slate-100'
+              }`}>
+                {dateFilter && selectedDateLabel ? selectedDateLabel : 'Semua tanggal aktif'}
+              </span>
+            </div>
           </div>
         </div>
       </div>
 
-
       {/* Table */}
       <div className="premium-card overflow-hidden">
+        <div className="px-5 py-4 border-b border-slate-100 bg-white flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+          <div>
+            <h2 className="text-base font-bold text-slate-800">
+              {dateFilter ? 'Tabel Booking Per Tanggal' : 'Tabel Semua Booking'}
+            </h2>
+            <p className="text-sm text-slate-400 mt-0.5">
+              {dateFilter && selectedDateLabel
+                ? selectedDateLabel
+                : 'Menampilkan booking dari semua tanggal'}
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            {(dateBookingsLoading || loading) && (
+              <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 text-[#147c60] text-xs font-bold">
+                <span className="w-3 h-3 border-2 border-emerald-200 border-t-[#147c60] rounded-full animate-spin" />
+                Memuat
+              </span>
+            )}
+            <span className="px-3 py-1.5 rounded-full bg-slate-100 text-slate-600 text-xs font-bold">
+              {total} Hasil
+            </span>
+            {dateFilter && (
+              <>
+                <span className="px-3 py-1.5 rounded-full bg-amber-50 text-amber-700 text-xs font-bold">
+                  {dateScopedStats.pending} Pending
+                </span>
+                <span className="px-3 py-1.5 rounded-full bg-green-50 text-green-700 text-xs font-bold">
+                  {dateScopedStats.confirmed} Confirmed
+                </span>
+              </>
+            )}
+          </div>
+        </div>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-slate-50/80 border-b border-slate-100">
@@ -657,7 +846,11 @@ _Setiap permainan punya cerita._ ⚽✨
                       <div className="p-4 bg-emerald-50 rounded-full">
                         <Calendar className="w-8 h-8 text-[#147c60]" />
                       </div>
-                      <p className="text-slate-500">No bookings found matching your criteria.</p>
+                      <p className="text-slate-500">
+                        {dateFilter && selectedDateLabel
+                          ? `Tidak ada booking pada ${selectedDateLabel} untuk filter ini.`
+                          : 'No bookings found matching your criteria.'}
+                      </p>
                     </div>
                   </td>
                 </tr>
