@@ -1,384 +1,159 @@
-"use client";
+'use client';
 
-import React, { Suspense } from "react";
-import { useSearchParams } from "next/navigation";
-import Link from "next/link";
+import { Suspense, useState } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import {
-  CheckCircle2,
-  Calendar,
-  Clock,
-  CreditCard,
   AlertTriangle,
   ArrowLeft,
+  Calendar,
+  Camera,
+  Check,
+  CheckCircle2,
+  Clock,
   Copy,
-} from "lucide-react";
+  CreditCard,
+  Flag,
+  MessageCircle,
+} from 'lucide-react';
+import { VENUE_IMAGES } from '@/lib/venueAssets';
+
+const cancellationRules = [
+  'Pembayaran yang sudah masuk dianggap hangus jika booking dibatalkan.',
+  'Pembatalan atau perubahan jadwal pada hari bermain membuat pembayaran dianggap hangus.',
+  'Perubahan dari jam premium ke reguler tidak mendapatkan refund selisih harga.',
+  'Perubahan dari jam reguler ke premium dikenakan biaya tambahan.',
+];
+
+const bookingRules = [
+  'Booking dapat dilakukan melalui website atau WhatsApp admin.',
+  'Slot tersedia tampil netral, pending tampil kuning, dan booking terkonfirmasi tampil merah.',
+  'Booking pending diberi waktu 15 menit untuk menyelesaikan pembayaran.',
+  'Slot kembali tersedia jika pembayaran tidak diselesaikan dalam batas waktu.',
+  'Booking terkonfirmasi berarti pembayaran sudah diterima dan jadwal siap dimainkan.',
+];
+
+function RuleList({ items, tone = 'neutral' }: { items: string[]; tone?: 'neutral' | 'warning' }) {
+  return (
+    <ol className="mt-5 divide-y divide-neutral-200 border-y border-neutral-200 dark:divide-neutral-800 dark:border-neutral-800">
+      {items.map((item, index) => (
+        <li key={item} className="grid grid-cols-[32px_1fr] gap-3 py-4 text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
+          <span className={`font-mono text-xs font-bold ${tone === 'warning' ? 'text-rose-600 dark:text-rose-400' : 'text-neutral-900 dark:text-white'}`}>{String(index + 1).padStart(2, '0')}</span>
+          <span>{item}</span>
+        </li>
+      ))}
+    </ol>
+  );
+}
 
 function BookingSuccessContent() {
   const searchParams = useSearchParams();
-  const teamName = searchParams.get("team") || "-";
-  const date = searchParams.get("date") || "-";
-  const time = searchParams.get("time") || "-";
-  const price = searchParams.get("price") || "-";
-  const phone = searchParams.get("phone") || "-";
-  const bookingId = searchParams.get("bookingId") || "-";
+  const teamName = searchParams.get('team') || '-';
+  const date = searchParams.get('date') || '-';
+  const time = searchParams.get('time') || '-';
+  const price = searchParams.get('price') || '-';
+  const phone = searchParams.get('phone') || '-';
+  const bookingId = searchParams.get('bookingId') || '-';
+  const hasDokumentasi = searchParams.get('dokumentasi') === '1';
+  const hasWasit = searchParams.get('wasit') === '1';
 
-  // Load from environment variables
-  const bankName = process.env.NEXT_PUBLIC_BANK_NAME || "Bank Mandiri";
-  const bankAccount =
-    process.env.NEXT_PUBLIC_BANK_ACCOUNT_NUMBER || "1610016475977";
-  const bankAccountName =
-    process.env.NEXT_PUBLIC_BANK_ACCOUNT_NAME || "CV BATAS KOTA POINT";
-  const adminWhatsApp = process.env.NEXT_PUBLIC_ADMIN_WHATSAPP || "08123456789";
+  const bankName = process.env.NEXT_PUBLIC_BANK_NAME || 'Bank Mandiri';
+  const bankAccount = process.env.NEXT_PUBLIC_BANK_ACCOUNT_NUMBER || '1610016475977';
+  const bankAccountName = process.env.NEXT_PUBLIC_BANK_ACCOUNT_NAME || 'CV BATAS KOTA POINT';
+  const adminWhatsApp = process.env.NEXT_PUBLIC_ADMIN_WHATSAPP || '08123456789';
+  const [copied, setCopied] = useState(false);
 
-  const [copied, setCopied] = React.useState(false);
-
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(bankAccount);
+  const copyAccount = async () => {
+    await navigator.clipboard.writeText(bankAccount);
     setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    window.setTimeout(() => setCopied(false), 2000);
   };
 
+  const whatsAppNumber = adminWhatsApp.replace(/^0/, '62').replace(/\D/g, '');
+  const whatsAppText = encodeURIComponent(
+    `Halo, saya ingin konfirmasi pembayaran booking atas nama ${teamName}, nomor HP ${phone}, Booking ID ${bookingId}.`,
+  );
+
   return (
-    <div className="min-h-screen bg-dark-bg text-white pt-24 pb-16 font-sans">
-      <div className="container mx-auto px-4 md:px-6 max-w-4xl">
-        {/* Success Header */}
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-neon-green/10 border-2 border-neon-green mb-6 animate-pulse">
-            <CheckCircle2 className="w-10 h-10 text-neon-green" />
-          </div>
-          <h1 className="font-sans font-bold text-4xl md:text-5xl uppercase mb-4">
-            Pemesanan <span className="text-neon-green">Berhasil!</span>
-          </h1>
-          <p className="text-gray-400 text-lg font-sans">
-            Terima kasih telah memesan lapangan di Batas Kota
-          </p>
-        </div>
-
-        {/* Booking Details Card */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 md:p-8 mb-8 relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-green to-transparent" />
-
-          <h2 className="font-sans font-bold text-xl mb-6 flex items-center gap-2 text-white">
-            <Calendar className="text-neon-green w-5 h-5" /> Detail Pemesanan
-          </h2>
-
-          <div className="space-y-4">
-            <div className="flex justify-between items-center border-b border-zinc-800 pb-3">
-              <span className="text-gray-400">Booking ID</span>
-              <span className="text-neon-green font-mono font-bold">
-                {bookingId}
-              </span>
-            </div>
-            <div className="flex justify-between items-center border-b border-zinc-800 pb-3">
-              <span className="text-gray-400">Nama Tim</span>
-              <span className="text-white font-medium font-sans">{teamName}</span>
-            </div>
-            <div className="flex justify-between items-center border-b border-zinc-800 pb-3">
-              <span className="text-gray-400">Tanggal</span>
-              <span className="text-white font-medium font-sans">{date}</span>
-            </div>
-            <div className="flex justify-between items-center border-b border-zinc-800 pb-3">
-              <span className="text-gray-400">Waktu</span>
-              <span className="text-white font-medium font-sans">{time}</span>
-            </div>
-            <div className="flex justify-between items-center border-b border-zinc-800 pb-3">
-              <span className="text-gray-400">Nomor WhatsApp</span>
-              <span className="text-white font-medium font-sans">{phone}</span>
-            </div>
-            
-            {(searchParams.get("dokumentasi") === '1' || searchParams.get("wasit") === '1') && (
-              <div className="flex justify-between items-start border-b border-zinc-800 pb-3">
-                <span className="text-gray-400">Add-On</span>
-                <div className="flex flex-col gap-1 text-right">
-                  {searchParams.get("dokumentasi") === '1' && (
-                    <span className="text-white font-medium text-sm">📸 Dokumentasi</span>
-                  )}
-                  {searchParams.get("wasit") === '1' && (
-                    <span className="text-white font-medium text-sm">🏁 Wasit</span>
-                  )}
-                  <span className="text-xs text-yellow-500">(Konfirmasi harga via WhatsApp)</span>
-                </div>
-              </div>
-            )}
-            
-            <div className="flex justify-between items-center pt-2">
-              <span className="text-gray-400 text-lg font-sans">Total Pembayaran Lapangan</span>
-              <span className="text-neon-green font-sans font-bold text-2xl">
-                {price}
-              </span>
-            </div>
-            
-            {(searchParams.get("dokumentasi") === '1' || searchParams.get("wasit") === '1') && (
-              <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3 mt-2">                <p className="text-yellow-400 text-sm flex items-start gap-2">
-                  <span className="text-base flex-shrink-0">⚠️</span>
-                  <span><strong>Add-On:</strong> Harga add-on belum termasuk dalam total di atas. Silakan konfirmasi harga via WhatsApp.</span>
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Payment Instructions Card */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 md:p-8 mb-8 relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-green to-transparent" />
-
-          <h2 className="font-sans font-bold text-xl mb-6 flex items-center gap-2 text-white">
-            <CreditCard className="text-neon-green w-5 h-5" /> Instruksi
-            Pembayaran
-          </h2>
-
-          <div className="space-y-6">
-            <div>
-              <p className="text-gray-400 text-sm mb-4">
-                Silakan transfer ke rekening berikut:
-              </p>
-
-              <div className="bg-black/50 rounded-lg p-5 border border-zinc-700">
-                <div className="space-y-3">
-                  <div>
-                    <p className="text-gray-500 text-xs uppercase tracking-wider mb-1 font-sans">
-                      Nama Penerima
-                    </p>
-                    <p className="text-white font-bold text-lg font-sans">
-                      {bankAccountName}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500 text-xs uppercase tracking-wider mb-1 font-sans">
-                      Bank
-                    </p>
-                    <p className="text-white font-bold text-lg font-sans">
-                      {bankName.toUpperCase()}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500 text-xs uppercase tracking-wider mb-1 font-sans">
-                      Nomor Rekening
-                    </p>
-                    <div className="flex items-center gap-3">
-                      <p className="text-neon-green font-mono font-bold text-2xl">
-                        {bankAccount}
-                      </p>
-                      <button
-                        onClick={copyToClipboard}
-                        className="p-2 hover:bg-zinc-800 rounded-lg transition-colors group"
-                        title="Salin nomor rekening"
-                      >
-                        {copied ? (
-                          <CheckCircle2 className="w-5 h-5 text-neon-green" />
-                        ) : (
-                          <Copy className="w-5 h-5 text-gray-400 group-hover:text-neon-green" />
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
-              <p className="text-red-400 text-sm flex items-start gap-2">
-                <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-                <span>
-                  <strong>PERINGATAN PENIPUAN:</strong> Transfer hanya ke rekening atas nama <strong className="text-white">CV BATAS KOTA POINT</strong>. 
-                  Kami tidak bertanggung jawab atas transfer ke rekening lain atau atas nama pribadi (selain CV BATAS KOTA POINT).
-                  Pastikan nama penerima sesuai sebelum melakukan transfer.
-                </span>
-              </p>
-            </div>
-
-            <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4">
-              <p className="text-yellow-500 text-sm flex items-start gap-2">
-                <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-                <span>
-                  <strong>Penting:</strong> Setelah melakukan pembayaran, harap
-                  konfirmasi melalui WhatsApp ke <strong>{adminWhatsApp}</strong> dengan
-                  melampirkan bukti transfer.
-                </span>
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Peraturan Cancel */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 md:p-8 mb-8 relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-500 to-transparent" />
-
-          <h2 className="font-sans font-bold text-xl mb-6 flex items-center gap-2 text-white">
-            <AlertTriangle className="text-red-500 w-5 h-5" /> Peraturan Cancel
-          </h2>
-
-          <div className="space-y-4">
-            <div className="flex gap-4">
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-red-500/10 border border-red-500 flex items-center justify-center">
-                <span className="text-red-500 font-bold">1</span>
-              </div>
-              <p className="text-gray-400 text-sm leading-relaxed pt-1">
-                Jika melakukan pembatalan pemesanan maka sejumlah uang yang telah masuk dianggap <strong className="text-red-400">HANGUS</strong> dan tidak bisa untuk merubah jadwal
-              </p>
-            </div>
-
-            <div className="flex gap-4">
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-red-500/10 border border-red-500 flex items-center justify-center">
-                <span className="text-red-500 font-bold">2</span>
-              </div>
-              <p className="text-gray-400 text-sm leading-relaxed pt-1">
-                Jika melakukan pembatalan atau perubahan jadwal saat hari yang sudah ditentukan maka pembayaran yang telah dilakukan akan dianggap <strong className="text-red-400">HANGUS</strong>
-              </p>
-            </div>
-
-            <div className="flex gap-4">
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-red-500/10 border border-red-500 flex items-center justify-center">
-                <span className="text-red-500 font-bold">3</span>
-              </div>
-              <p className="text-gray-400 text-sm leading-relaxed pt-1">
-                Jika pergantian jadwal dari jam premium ke jam reguler maka kelebihan uang <strong className="text-red-400">tidak bisa di refund</strong> untuk kelebihan biayanya
-              </p>
-            </div>
-
-            <div className="flex gap-4">
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-red-500/10 border border-red-500 flex items-center justify-center">
-                <span className="text-red-500 font-bold">4</span>
-              </div>
-              <p className="text-gray-400 text-sm leading-relaxed pt-1">
-                Jika pergantian jadwal dari jam reguler ke jam premium maka customer dikenakan <strong className="text-yellow-400">biaya tambahan</strong>
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Booking Order */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 md:p-8 mb-8 relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-green to-transparent" />
-
-          <h2 className="font-sans font-bold text-xl mb-6 flex items-center gap-2 text-white">
-            <Calendar className="text-neon-green w-5 h-5" /> Booking Order
-          </h2>
-
-          <div className="space-y-4">
-            <div className="flex gap-4">
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-neon-green/10 border border-neon-green flex items-center justify-center">
-                <span className="text-neon-green font-bold">1</span>
-              </div>
-              <p className="text-gray-400 text-sm leading-relaxed pt-1">
-                Booking bisa melalui <strong className="text-white">website</strong> atau via <strong className="text-white">WhatsApp admin</strong>
-              </p>
-            </div>
-
-            <div className="flex gap-4">
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-neon-green/10 border border-neon-green flex items-center justify-center">
-                <span className="text-neon-green font-bold">2</span>
-              </div>
-              <p className="text-gray-400 text-sm leading-relaxed pt-1">
-                Tanda <strong className="text-white">putih</strong> pada jadwal berarti <strong className="text-white">available</strong> (jam kosong)
-              </p>
-            </div>
-
-            <div className="flex gap-4">
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-neon-green/10 border border-neon-green flex items-center justify-center">
-                <span className="text-neon-green font-bold">3</span>
-              </div>
-              <p className="text-gray-400 text-sm leading-relaxed pt-1">
-                Jam kosong yang telah dibooking akan berubah menjadi <strong className="text-yellow-400">kuning</strong>, berarti sudah dibooking dan customer diberikan kesempatan <strong className="text-white">15 menit</strong> untuk melakukan pelunasan
-              </p>
-            </div>
-
-            <div className="flex gap-4">
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-neon-green/10 border border-neon-green flex items-center justify-center">
-                <span className="text-neon-green font-bold">4</span>
-              </div>
-              <p className="text-gray-400 text-sm leading-relaxed pt-1">
-                Jika dalam <strong className="text-white">15 menit</strong> belum melakukan pelunasan maka secara otomatis tanda booking order pada website kembali menjadi <strong className="text-white">putih</strong> (available) dan bisa kembali dibooking oleh siapa saja
-              </p>
-            </div>
-
-            <div className="flex gap-4">
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-neon-green/10 border border-neon-green flex items-center justify-center">
-                <span className="text-neon-green font-bold">5</span>
-              </div>
-              <p className="text-gray-400 text-sm leading-relaxed pt-1">
-                Tanda <strong className="text-red-400">merah</strong> pada booking order berarti customer sudah melakukan pembayaran dan siap untuk bermain pada jadwal tersebut
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Periode Booking Order */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 md:p-8 mb-8 relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-500 to-transparent" />
-
-          <h2 className="font-sans font-bold text-xl mb-6 flex items-center gap-2 text-white">
-            <Clock className="text-yellow-500 w-5 h-5" /> Periode Booking Order
-          </h2>
-
-          <div className="space-y-4">
-            <div className="flex gap-4">
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-yellow-500/10 border border-yellow-500 flex items-center justify-center">
-                <span className="text-yellow-500 font-bold">1</span>
-              </div>
-              <p className="text-gray-400 text-sm leading-relaxed pt-1">
-                Minimum order <strong className="text-white">1 jam sebelumnya</strong>. 1 jam sebelum jam bermain pada jadwal booking hanya bisa dibooking via <strong className="text-white">WhatsApp</strong> melalui admin
-              </p>
-            </div>
-
-            <div className="flex gap-4">
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-yellow-500/10 border border-yellow-500 flex items-center justify-center">
-                <span className="text-yellow-500 font-bold">2</span>
-              </div>
-              <p className="text-gray-400 text-sm leading-relaxed pt-1">
-                Silahkan menghubungi <strong className="text-white">admin</strong>
-              </p>
-            </div>
-
-            <div className="flex gap-4">
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-yellow-500/10 border border-yellow-500 flex items-center justify-center">
-                <span className="text-yellow-500 font-bold">3</span>
-              </div>
-              <p className="text-gray-400 text-sm leading-relaxed pt-1">
-                Untuk booking <strong className="text-white">wajib melakukan pelunasan</strong>
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4">
-          <Link
-            href="/#booking"
-            className="flex-1 text-center px-6 py-4 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl font-sans font-bold uppercase transition-colors flex items-center justify-center gap-2"
-          >
-            <ArrowLeft className="w-5 h-5" />
-            Kembali ke Beranda
+    <div className="public-site min-h-screen bg-porcelain text-ink dark:bg-black dark:text-neutral-100">
+      <header className="border-b border-terracotta-700 bg-black text-white backdrop-blur-md dark:border-terracotta-800 dark:bg-black">
+        <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+          <Link href="/" className="flex items-center gap-3">
+            <Image src={VENUE_IMAGES.logo} alt="Batas Kota Point" width={44} height={44} className="rounded-md" />
+            <span className="flex flex-col"><strong className="text-sm uppercase sm:text-base">Batas Kota Point</strong><span className="font-mono text-[9px] uppercase tracking-widest text-neutral-500">Arena · Pora.sch · Padel</span></span>
           </Link>
-          <a
-            href={`https://wa.me/${adminWhatsApp
-              .replace(/^0/, "62")
-              .replace(/\D/g, "")}?text=${encodeURIComponent(
-                `Halo, saya ingin konfirmasi pembayaran untuk booking lapangan atas nama ${teamName}, nomor HP: ${phone}, Booking ID: ${bookingId}`
-              )}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex-1 text-center px-6 py-4 bg-neon-green hover:bg-neon-green/90 text-black rounded-xl font-sans font-bold uppercase transition-colors"
-          >
-            Konfirmasi via WhatsApp
-          </a>
+          <Link href="/#booking" className="flex items-center gap-2 rounded-md border border-neutral-700 px-3.5 py-2 text-xs font-semibold transition-colors hover:border-terracotta-500 hover:text-terracotta-300"><ArrowLeft className="h-4 w-4" />Kembali</Link>
         </div>
-      </div>
+      </header>
+
+      <main className="mx-auto max-w-6xl px-4 py-12 sm:px-6 md:py-16 lg:px-8">
+        <div className="grid gap-8 lg:grid-cols-[1.08fr_0.92fr] lg:gap-12">
+          <section>
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-terracotta-200 text-terracotta-800 dark:bg-terracotta-950 dark:text-terracotta-300"><CheckCircle2 className="h-6 w-6" /></div>
+            <p className="mt-6 font-mono text-xs font-semibold uppercase tracking-widest text-terracotta-700 dark:text-terracotta-300">Booking berhasil dibuat</p>
+            <h1 className="mt-3 max-w-xl text-4xl font-medium leading-tight sm:text-6xl">Sampai ketemu di lapangan.</h1>
+            <p className="mt-5 max-w-xl text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">Jadwal Anda sedang ditahan dengan status pending. Selesaikan pembayaran dan kirim bukti transfer ke admin agar booking dikonfirmasi.</p>
+
+            <div className="mt-10 border-y border-[#c9c5ba] py-6 dark:border-neutral-700">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <span className="font-mono text-xs uppercase tracking-widest text-neutral-500">Booking ID</span>
+                <strong className="font-mono text-lg">{bookingId}</strong>
+              </div>
+              <dl className="mt-6 grid gap-x-6 gap-y-5 sm:grid-cols-2">
+                <div><dt className="text-[10px] uppercase tracking-wider text-neutral-500">Nama tim</dt><dd className="mt-1 text-sm font-semibold">{teamName}</dd></div>
+                <div><dt className="text-[10px] uppercase tracking-wider text-neutral-500">WhatsApp</dt><dd className="mt-1 font-mono text-sm">{phone}</dd></div>
+                <div><dt className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-neutral-500"><Calendar className="h-3 w-3" />Tanggal</dt><dd className="mt-1 text-sm font-semibold">{date}</dd></div>
+                <div><dt className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-neutral-500"><Clock className="h-3 w-3" />Jadwal</dt><dd className="mt-1 font-mono text-sm">{time}</dd></div>
+              </dl>
+
+              {(hasDokumentasi || hasWasit) && (
+                <div className="mt-6 border-t border-[#c9c5ba] pt-5 dark:border-neutral-700">
+                  <p className="text-[10px] uppercase tracking-wider text-neutral-500">Layanan tambahan</p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {hasDokumentasi && <span className="inline-flex items-center gap-2 rounded-full border border-neutral-300 bg-white px-3 py-1.5 text-xs dark:border-neutral-700 dark:bg-neutral-900"><Camera className="h-3.5 w-3.5" />Dokumentasi</span>}
+                    {hasWasit && <span className="inline-flex items-center gap-2 rounded-full border border-neutral-300 bg-white px-3 py-1.5 text-xs dark:border-neutral-700 dark:bg-neutral-900"><Flag className="h-3.5 w-3.5" />Wasit</span>}
+                  </div>
+                  <p className="mt-3 text-xs text-amber-700 dark:text-amber-400">Harga layanan tambahan dikonfirmasi melalui WhatsApp dan belum termasuk total lapangan.</p>
+                </div>
+              )}
+
+              <div className="mt-6 flex items-end justify-between border-t border-[#c9c5ba] pt-5 dark:border-neutral-700"><span className="text-sm font-semibold">Total lapangan</span><strong className="font-mono text-2xl">{price}</strong></div>
+            </div>
+          </section>
+
+          <aside className="self-start rounded-xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900 sm:p-8">
+            <div className="flex items-center gap-3"><CreditCard className="h-5 w-5" /><h2 className="text-xl font-bold">Instruksi pembayaran</h2></div>
+            <p className="mt-3 text-sm text-neutral-500">Transfer ke rekening resmi berikut, lalu kirim bukti pembayaran kepada admin.</p>
+            <div className="mt-6 space-y-5 border-y border-neutral-200 py-5 dark:border-neutral-800">
+              <div><p className="text-[10px] uppercase tracking-wider text-neutral-500">Nama penerima</p><p className="mt-1 font-semibold">{bankAccountName}</p></div>
+              <div><p className="text-[10px] uppercase tracking-wider text-neutral-500">Bank</p><p className="mt-1 font-semibold">{bankName.toUpperCase()}</p></div>
+              <div><p className="text-[10px] uppercase tracking-wider text-neutral-500">Nomor rekening</p><div className="mt-1 flex items-center justify-between gap-3"><strong className="break-all font-mono text-xl">{bankAccount}</strong><button type="button" onClick={copyAccount} aria-label="Salin nomor rekening" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-terracotta-200 hover:bg-terracotta-50 dark:border-neutral-700 dark:hover:bg-neutral-800">{copied ? <Check className="h-4 w-4 text-terracotta-600" /> : <Copy className="h-4 w-4" />}</button></div></div>
+            </div>
+
+            <div className="mt-5 flex gap-3 rounded-md border border-rose-200 bg-rose-50 p-4 text-xs leading-relaxed text-rose-800 dark:border-rose-900 dark:bg-rose-950/30 dark:text-rose-300"><AlertTriangle className="h-4 w-4 shrink-0" /><p>Transfer hanya ke rekening atas nama <strong>CV BATAS KOTA POINT</strong>. Pastikan nama penerima sesuai sebelum transfer.</p></div>
+            <a href={`https://wa.me/${whatsAppNumber}?text=${whatsAppText}`} target="_blank" rel="noopener noreferrer" className="mt-5 flex w-full items-center justify-center gap-2 rounded-md bg-terracotta-600 px-4 py-3 text-xs font-bold uppercase text-white transition-colors hover:bg-terracotta-700"><MessageCircle className="h-4 w-4" />Konfirmasi via WhatsApp</a>
+            <p className="mt-3 text-center font-mono text-[10px] text-neutral-500">Admin WhatsApp: {adminWhatsApp}</p>
+          </aside>
+        </div>
+
+        <section className="mt-16 grid gap-10 border-t border-[#c9c5ba] pt-12 dark:border-neutral-700 lg:grid-cols-2">
+          <div><p className="font-mono text-xs uppercase tracking-widest text-rose-600 dark:text-rose-400">Peraturan pembatalan</p><h2 className="mt-3 text-2xl font-bold">Perubahan dan cancel</h2><RuleList items={cancellationRules} tone="warning" /></div>
+          <div><p className="font-mono text-xs uppercase tracking-widest text-neutral-500">Status jadwal</p><h2 className="mt-3 text-2xl font-bold">Cara booking bekerja</h2><RuleList items={bookingRules} /></div>
+        </section>
+
+        <section className="mt-12 flex flex-col justify-between gap-5 border-t border-[#c9c5ba] py-8 dark:border-neutral-700 sm:flex-row sm:items-center">
+          <div><p className="font-mono text-xs uppercase tracking-widest text-neutral-500">Periode booking</p><p className="mt-2 max-w-2xl text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">Minimum order 1 jam sebelum bermain. Booking kurang dari 1 jam hanya dapat dilakukan melalui WhatsApp admin. Semua booking wajib dilunasi.</p></div>
+          <Link href="/#booking" className="flex min-h-12 shrink-0 items-center justify-center gap-2 bg-black px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-terracotta-700 dark:bg-terracotta-600 dark:text-white"><ArrowLeft className="h-4 w-4" />Kembali ke booking</Link>
+        </section>
+      </main>
     </div>
   );
 }
 
 export default function BookingSuccessPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen bg-dark-bg flex items-center justify-center">
-          <div className="text-neon-green text-2xl font-sans animate-pulse">
-            Loading...
-          </div>
-        </div>
-      }
-    >
+    <Suspense fallback={<div className="flex min-h-screen items-center justify-center bg-porcelain text-sm text-neutral-500 dark:bg-black">Memuat booking...</div>}>
       <BookingSuccessContent />
     </Suspense>
   );

@@ -1,20 +1,13 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Orbitron } from "next/font/google";
+import { Inter } from "next/font/google";
 import { Providers } from "@/components/providers";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], display: 'swap', fallback: ['system-ui', 'sans-serif'] });
-const orbitron = Orbitron({
-  subsets: ["latin"],
-  display: 'swap',
-  fallback: ['system-ui', 'sans-serif'],
-  weight: ['400', '500', '600', '700', '800', '900'],
-});
-
 export const metadata: Metadata = {
-  title: "Batas Kota | The Town Space",
+  title: "Batas Kota Point | Pora.sch, Batas Kota Arena & Padel",
   description:
-    "Batas Kota – The Town Space hadir dengan lapangan mini soccer premium yang dirancang untuk memberikan pengalaman bermain terbaik.",
+    "Booking mini soccer di Batas Kota Arena, Kota Selong. Kenali Pora.sch dan padel (Coming Soon).",
   keywords: [
     "arena olahraga",
     "pemesanan",
@@ -36,14 +29,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="scroll-smooth" suppressHydrationWarning>
+    <html lang="id" className="scroll-smooth" suppressHydrationWarning>
       <body
-        className={`${inter.className} ${orbitron.className}`}
-        style={{ backgroundColor: "#050505", color: "#ffffff" }}
+        className={inter.className}
         suppressHydrationWarning
       >
         <Providers>
-          <div id="root">{children}</div>
+          {children}
         </Providers>
       </body>
     </html>

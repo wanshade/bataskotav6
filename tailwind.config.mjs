@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: 'class',
   content: [
     './app/**/*.{js,ts,jsx,tsx,mdx}',
     './components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -9,6 +10,21 @@ export default {
   theme: {
     extend: {
       colors: {
+        terracotta: {
+          50: '#fbf3ef',
+          100: '#f5e3db',
+          200: '#eac4b5',
+          300: '#dda28a',
+          400: '#cf795d',
+          500: '#bd5b3f',
+          600: '#a44731',
+          700: '#843727',
+          800: '#682d24',
+          900: '#55271f',
+          950: '#2f140f',
+        },
+        ink: '#11100f',
+        porcelain: '#f8f5f1',
         neon: {
           green: '#147c60',
           dark: '#0f5a47',

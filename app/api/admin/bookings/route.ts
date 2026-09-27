@@ -1,7 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
-import { and, eq, inArray } from 'drizzle-orm';
+import { and, eq, inArray, sql } from 'drizzle-orm';
+
+class BookingConflictError extends Error {
+  constructor(
+    public readonly slot: string,
+    public readonly bookingDate: string,
+    public readonly teamName: string,
+  ) {
+    super(`Slot ${slot} pada ${bookingDate} sudah dipesan oleh ${teamName}.`);
+    this.name = 'BookingConflictError';
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -52,57 +63,64 @@ export async function POST(request: NextRequest) {
         const { bookings, generateBookingId } = await import('@/lib/schema');
         const { hasTimeOverlap } = await import('@/lib/schedule');
 
-        // --- DOUBLE BOOKING PREVENTION ---
         const requestedSlots = timeSlot.split(', ').map((s: string) => s.trim());
 
-        const existingBookings = await db
-          .select()
-          .from(bookings)
-          .where(
-            and(
-              eq(bookings.bookingDate, bookingDate),
-              inArray(bookings.status, ['pending', 'confirmed'])
-            )
+        const newBooking = await db.transaction(async (tx) => {
+          await tx.execute(
+            sql`select pg_advisory_xact_lock(hashtextextended(${bookingDate}, 0))`,
           );
 
-        for (const reqSlot of requestedSlots) {
-          const conflict = existingBookings.find(b =>
-            b.timeSlot.split(', ').some(ts => hasTimeOverlap(ts, reqSlot))
-          );
-          if (conflict) {
-            return NextResponse.json(
-              {
-                error: 'Slot sudah dipesan',
-                message: `Slot ${reqSlot} pada ${bookingDate} sudah dipesan oleh ${conflict.teamName}. Silakan pilih waktu lain.`,
-              },
-              { status: 409 }
+          const existingBookings = await tx
+            .select({
+              teamName: bookings.teamName,
+              timeSlot: bookings.timeSlot,
+            })
+            .from(bookings)
+            .where(
+              and(
+                eq(bookings.bookingDate, bookingDate),
+                inArray(bookings.status, ['pending', 'confirmed'])
+              )
             );
+
+          for (const requestedSlot of requestedSlots) {
+            const conflict = existingBookings.find((booking) =>
+              booking.timeSlot
+                .split(', ')
+                .some((bookedSlot) => hasTimeOverlap(bookedSlot, requestedSlot)),
+            );
+
+            if (conflict) {
+              throw new BookingConflictError(
+                requestedSlot,
+                bookingDate,
+                conflict.teamName,
+              );
+            }
           }
-        }
 
-        // Generate unique booking ID
-        const bookingId = generateBookingId();
+          const [createdBooking] = await tx
+            .insert(bookings)
+            .values({
+              bookingId: generateBookingId(),
+              teamName,
+              phone,
+              bookingDate,
+              timeSlot,
+              price: priceValue,
+              totalPrice: priceValue,
+              paymentStatus,
+              dpAmount: dpValue,
+              status: 'confirmed',
+              approvedAt: new Date(),
+              approvedBy: session.user?.name || 'Admin',
+              addDokumentasi: !!dokumentasi,
+              addWasit: !!wasit,
+            })
+            .returning();
 
-        // Insert booking with confirmed status (admin-created bookings are auto-confirmed)
-        const [newBooking] = await db
-          .insert(bookings)
-          .values({
-            bookingId,
-            teamName,
-            phone,
-            bookingDate,
-            timeSlot,
-            price: priceValue,
-            totalPrice: priceValue,
-            paymentStatus,
-            dpAmount: dpValue,
-            status: 'confirmed', // Admin bookings are auto-confirmed
-            approvedAt: new Date(),
-            approvedBy: session.user?.name || 'Admin',
-            addDokumentasi: !!dokumentasi,
-            addWasit: !!wasit,
-          })
-          .returning();
+          return createdBooking;
+        });
 
         return NextResponse.json(
           { 
@@ -113,6 +131,16 @@ export async function POST(request: NextRequest) {
           { status: 201 }
         );
       } catch (dbError) {
+        if (dbError instanceof BookingConflictError) {
+          return NextResponse.json(
+            {
+              error: 'Slot sudah dipesan',
+              message: `${dbError.message} Silakan pilih waktu lain.`,
+            },
+            { status: 409 },
+          );
+        }
+
         console.error('Database error:', dbError);
         throw new Error('Database operation failed');
       }

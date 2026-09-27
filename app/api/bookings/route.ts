@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { and, eq, inArray } from 'drizzle-orm';
+import { and, eq, inArray, sql } from 'drizzle-orm';
 import * as dotenv from 'dotenv';
 
 // Load env variables explicitly
@@ -7,6 +7,16 @@ dotenv.config({ path: '.env.local' });
 
 // Temporary in-memory storage for bookings (for testing without database)
 const tempBookings: Record<string, unknown>[] = [];
+
+class BookingConflictError extends Error {
+  constructor(
+    public readonly slot: string,
+    public readonly bookingDate: string,
+  ) {
+    super(`Slot ${slot} pada ${bookingDate} sudah dipesan.`);
+    this.name = 'BookingConflictError';
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -45,56 +55,56 @@ export async function POST(request: NextRequest) {
         const { bookings, generateBookingId } = await import('@/lib/schema');
         const { hasTimeOverlap } = await import('@/lib/schedule');
 
-        // --- DOUBLE BOOKING PREVENTION ---
-        // Check for existing bookings on the same date with overlapping time slots
         const requestedSlots = timeSlot.split(', ').map((s: string) => s.trim());
 
-        const existingBookings = await db
-          .select()
-          .from(bookings)
-          .where(
-            and(
-              eq(bookings.bookingDate, bookingDate),
-              inArray(bookings.status, ['pending', 'confirmed'])
-            )
+        const newBooking = await db.transaction(async (tx) => {
+          // Serialize every booking write for the same date until this transaction ends.
+          await tx.execute(
+            sql`select pg_advisory_xact_lock(hashtextextended(${bookingDate}, 0))`,
           );
 
-        // Check each requested slot against existing bookings
-        for (const reqSlot of requestedSlots) {
-          const conflict = existingBookings.find(b =>
-            b.timeSlot.split(', ').some(ts => hasTimeOverlap(ts, reqSlot))
-          );
-          if (conflict) {
-            return NextResponse.json(
-              {
-                error: 'Slot sudah dipesan',
-                message: `Slot ${reqSlot} pada ${bookingDate} sudah dipesan oleh tim lain. Silakan pilih waktu lain.`,
-              },
-              { status: 409 }
+          const existingBookings = await tx
+            .select({ timeSlot: bookings.timeSlot })
+            .from(bookings)
+            .where(
+              and(
+                eq(bookings.bookingDate, bookingDate),
+                inArray(bookings.status, ['pending', 'confirmed'])
+              )
             );
+
+          for (const requestedSlot of requestedSlots) {
+            const hasConflict = existingBookings.some((booking) =>
+              booking.timeSlot
+                .split(', ')
+                .some((bookedSlot) => hasTimeOverlap(bookedSlot, requestedSlot)),
+            );
+
+            if (hasConflict) {
+              throw new BookingConflictError(requestedSlot, bookingDate);
+            }
           }
-        }
 
-        // Generate unique booking ID
-        const bookingId = generateBookingId();
+          const [createdBooking] = await tx
+            .insert(bookings)
+            .values({
+              bookingId: generateBookingId(),
+              teamName,
+              phone,
+              bookingDate,
+              timeSlot,
+              price: priceValue,
+              totalPrice: priceValue,
+              paymentStatus,
+              dpAmount: dpValue,
+              status: 'pending',
+              addDokumentasi: !!dokumentasi,
+              addWasit: !!wasit,
+            })
+            .returning();
 
-        const [newBooking] = await db
-          .insert(bookings)
-          .values({
-            bookingId,
-            teamName,
-            phone,
-            bookingDate,
-            timeSlot,
-            price: priceValue,
-            totalPrice: priceValue,
-            paymentStatus,
-            dpAmount: dpValue,
-            status: 'pending',
-            addDokumentasi: !!dokumentasi,
-            addWasit: !!wasit,
-          })
-          .returning();
+          return createdBooking;
+        });
 
         return NextResponse.json(
           { 
@@ -106,6 +116,16 @@ export async function POST(request: NextRequest) {
           { status: 201 }
         );
       } catch (dbError) {
+        if (dbError instanceof BookingConflictError) {
+          return NextResponse.json(
+            {
+              error: 'Slot sudah dipesan',
+              message: `${dbError.message} Silakan pilih waktu lain.`,
+            },
+            { status: 409 },
+          );
+        }
+
         const errorMessage = dbError instanceof Error ? dbError.message : String(dbError);
         console.error('Database error:', errorMessage);
         return NextResponse.json(
@@ -170,26 +190,39 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    console.log('📖 Fetching all bookings...');
+    const bookingDate = request.nextUrl.searchParams.get('date')?.trim();
+
+    if (!bookingDate) {
+      return NextResponse.json(
+        { error: 'Parameter date wajib diisi.' },
+        { status: 400 },
+      );
+    }
+
     const hasDatabaseConfigured = !!process.env.DATABASE_URL;
-    console.log('🔗 Database configured:', hasDatabaseConfigured);
 
     if (hasDatabaseConfigured) {
       try {
-        console.log('📦 Importing database modules for GET...');
         const { db } = await import('@/lib/db');
         const { bookings } = await import('@/lib/schema');
 
-        console.log('🔍 Querying database for bookings...');
-        const allBookings = await db.select().from(bookings);
-        console.log('✅ Found bookings in database:', allBookings.length);
-        
-        return NextResponse.json({ 
-          bookings: allBookings,
-          usingDatabase: true 
-        });
+        const dayBookings = await db
+          .select({
+            bookingDate: bookings.bookingDate,
+            timeSlot: bookings.timeSlot,
+            status: bookings.status,
+          })
+          .from(bookings)
+          .where(
+            and(
+              eq(bookings.bookingDate, bookingDate),
+              inArray(bookings.status, ['pending', 'confirmed']),
+            ),
+          );
+
+        return NextResponse.json({ bookings: dayBookings, usingDatabase: true });
       } catch (dbError) {
         console.error('❌ Database error in GET, returning temporary bookings:', dbError);
         console.error('❌ Full error details for GET:', dbError);
@@ -198,9 +231,16 @@ export async function GET() {
     }
 
     // Return temporary bookings
-    console.log('📝 Returning temporary bookings:', tempBookings.length);
+    const fallbackBookings = tempBookings
+      .filter((booking) => booking.bookingDate === bookingDate)
+      .filter((booking) => booking.status === 'pending' || booking.status === 'confirmed')
+      .map((booking) => ({
+        bookingDate: booking.bookingDate,
+        timeSlot: booking.timeSlot,
+        status: booking.status,
+      }));
     return NextResponse.json({ 
-      bookings: tempBookings,
+      bookings: fallbackBookings,
       usingDatabase: false,
       warning: 'Showing temporary bookings (not from database)'
     });

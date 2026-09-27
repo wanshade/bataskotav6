@@ -1,162 +1,69 @@
-import React from 'react';
-import dynamic from 'next/dynamic';
-import NeonButton from './ui/NeonButton';
-import { ChevronRight } from 'lucide-react';
+import Image from 'next/image';
+import { Dancing_Script } from 'next/font/google';
+import { ArrowUpRight } from 'lucide-react';
+import { VENUE_IMAGES } from '@/lib/venueAssets';
 
-const Scene3D = dynamic(() => import('./Scene3D'), { ssr: false });
+const dancingScript = Dancing_Script({ subsets: ['latin'], weight: '600', display: 'swap' });
 
-// Custom animation styles
-const heroAnimations = `
-  @keyframes fadeInUp {
-    from {
-      opacity: 0;
-      transform: translateY(30px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes float {
-    0%, 100% {
-      transform: translateY(0px);
-    }
-    50% {
-      transform: translateY(-12px);
-    }
-  }
-
-  @keyframes neonPulse {
-    0%, 100% {
-      filter: drop-shadow(0 0 20px rgba(132, 204, 22, 0.4)) drop-shadow(0 0 40px rgba(132, 204, 22, 0.2));
-    }
-    50% {
-      filter: drop-shadow(0 0 30px rgba(132, 204, 22, 0.8)) drop-shadow(0 0 60px rgba(132, 204, 22, 0.4));
-    }
-  }
-
-  @keyframes textReveal {
-    from {
-      opacity: 0;
-      transform: translateY(40px) scale(0.95);
-      filter: blur(10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-      filter: blur(0);
-    }
-  }
-
-  @keyframes glowSweep {
-    0% {
-      background-position: -200% center;
-    }
-    100% {
-      background-position: 200% center;
-    }
-  }
-
-  .logo-animate {
-    animation: 
-      fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards,
-      float 4s ease-in-out infinite 0.8s,
-      neonPulse 3s ease-in-out infinite 0.8s;
-    opacity: 0;
-  }
-
-  .logo-animate:hover {
-    transform: scale(1.08);
-    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
-
-  .heading-reveal {
-    animation: textReveal 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    opacity: 0;
-  }
-
-  .heading-reveal-delay-1 {
-    animation: textReveal 1s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
-    opacity: 0;
-  }
-
-  .heading-reveal-delay-2 {
-    animation: textReveal 1s cubic-bezier(0.16, 1, 0.3, 1) 0.4s forwards;
-    opacity: 0;
-  }
-`;
-
-const Hero: React.FC = () => {
+export function Hero() {
   return (
-    <section id="hero" className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
-      {/* Background Overlay & Image */}
-      <div className="absolute inset-0 z-0">
-        <div className="absolute inset-0 bg-gradient-to-b from-dark-bg via-transparent to-dark-bg z-10 opacity-60" />
-        <div className="absolute inset-0 bg-gradient-to-r from-dark-bg via-transparent to-dark-bg z-10 opacity-40" />
-        <div className="absolute inset-0 bg-[url('/herobg.png')] bg-cover bg-center opacity-90" />
-        
-        {/* Grid Effect */}
-        <div 
-          className="absolute inset-0 z-0 opacity-20"
-          style={{
-            backgroundImage: 'linear-gradient(rgba(20, 124, 96, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(20, 124, 96, 0.1) 1px, transparent 1px)',
-            backgroundSize: '50px 50px',
-            transform: 'perspective(500px) rotateX(60deg) translateY(100px) scale(2)'
-          }}
+    <section id="hero-section" aria-labelledby="hero-main-title" className="font-sans">
+      <div className="relative isolate h-[520px] overflow-hidden bg-terracotta-950 sm:h-[580px] lg:h-[min(660px,72svh)] lg:min-h-[520px]">
+        <Image
+          src={VENUE_IMAGES.venueOverview}
+          alt="Visual konsep Batas Kota Point dengan Pora Social House, Batas Kota Arena, dan padel"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-[62%_center] sm:object-center"
         />
-      </div>
-
-      {/* 3D Scene Overlay */}
-      <div className="absolute inset-0 z-10 pointer-events-none opacity-80">
-        <Scene3D />
-      </div>
-
-      <div className="container mx-auto px-6 relative z-20 flex flex-col items-center text-center">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-neon-green/10 border border-neon-green/30 mb-8 backdrop-blur-sm animate-fade-in-up">
-          <span className="w-2 h-2 rounded-full bg-neon-green animate-pulse" />
-          <span className="text-neon-green font-sans text-xs font-bold uppercase tracking-widest">
-            MINI SOCCER TERBAIK DI LOMBOK
-          </span>
-        </div>
-         {/* Logo for mobile version */}
-        <img
-          src="/logo1.png"
-          alt="Batas Kota Logo"
-          className="md:hidden w-48 h-auto mb-6 logo-animate cursor-pointer"
-        />
-
-         {/* Heading for tablet/desktop version */}
-        <h1 className="hidden md:block font-display font-black text-5xl md:text-6xl lg:text-7xl leading-tight uppercase mb-6 text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-500 drop-shadow-[0_0_15px_rgba(255,255,255,0.1)]">
-          <span className="heading-reveal-delay-1 inline-block">Batas Kota</span> <br />
-          <span className="text-neon-green drop-shadow-[0_0_20px_rgba(20,124,96,0.4)] heading-reveal-delay-2 inline-block">The Town Space</span>
-        </h1>
-
-        <p className="font-sans text-gray-400 text-lg md:text-xl max-w-2xl mb-10 leading-relaxed">
-          Lapangan mini soccer terbaik di Lombok. 
-          Rumput standar FIFA, suasana malam keren, yang bikin main makin seru.
-        </p>
-
-        <div className="flex flex-col sm:flex-row gap-6 items-center">
-          <a href="#booking">
-            <NeonButton className="flex items-center gap-2">
-              Pesan Lapangan <ChevronRight className="w-5 h-5" />
-            </NeonButton>
-          </a>
-          <a href="#features" className="text-white font-display text-sm uppercase tracking-widest hover:text-neon-green transition-colors border-b border-transparent hover:border-neon-green pb-1">
-            Jelajahi Fitur
-          </a>
+        <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(180deg,rgba(17,16,15,0.18)_15%,rgba(47,20,15,0.42)_48%,rgba(17,16,15,0.92)_100%)]" />
+        <div className="relative mx-auto flex h-full max-w-7xl flex-col justify-end px-6 pb-9 sm:px-8 sm:pb-12 lg:px-8 lg:pb-14">
+          <p className="absolute right-6 top-5 text-[10px] tracking-wide text-white/90 sm:right-8 sm:top-6">
+            Visual konsep kawasan
+          </p>
+          <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-end">
+            <div className="min-w-0 max-w-2xl">
+              <h1
+                id="hero-main-title"
+                className="text-[clamp(3.75rem,19.5vw,4.75rem)] font-medium leading-[0.88] tracking-[-0.065em] text-[#fffdf5] sm:text-[104px] lg:text-[136px]"
+              >
+                Batas Kota<br />Point.
+              </h1>
+              <p className={`${dancingScript.className} mt-6 text-5xl leading-tight text-[#fffdf5] sm:mt-8 sm:text-6xl lg:text-7xl`}>
+                The Social House
+              </p>
+            </div>
+            <a
+              href="https://www.instagram.com/bataskota.arena/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group inline-flex shrink-0 items-center gap-5 border-b border-white/60 pb-2 text-sm text-white transition-colors hover:border-white focus-visible:outline-white sm:mb-1"
+            >
+              Open Instagram
+              <ArrowUpRight aria-hidden="true" className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+            </a>
+          </div>
         </div>
       </div>
 
-      {/* Decorative Glows */}
-      <div className="absolute top-1/4 left-0 w-96 h-96 bg-neon-green/10 rounded-full blur-[100px] pointer-events-none" />
-      <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-neon-green/5 rounded-full blur-[120px] pointer-events-none" />
-
-      {/* Animation Styles */}
-      <style jsx>{heroAnimations}</style>
+      <div className="border-b border-terracotta-700 bg-terracotta-600 text-white dark:border-terracotta-800 dark:bg-terracotta-700 dark:text-white">
+        <div className="mx-auto max-w-7xl px-6 py-7 sm:px-8 sm:py-8">
+          <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-center sm:gap-6">
+            <div>
+              <h2 className="text-lg font-medium tracking-tight">Olahraga dan kumpul di Batas Kota.</h2>
+            </div>
+            <a
+              id="hero-book-now-btn"
+              href="#booking"
+              className="group inline-flex min-h-12 min-w-0 items-center justify-between gap-4 bg-black px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-neutral-800 focus-visible:outline-white"
+            >
+              <span className="min-w-0 leading-relaxed">Booking Batas Kota Arena mini soccer</span>
+              <ArrowUpRight aria-hidden="true" className="h-4 w-4 shrink-0 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+            </a>
+          </div>
+        </div>
+      </div>
     </section>
   );
-};
-
-export default Hero;
+}

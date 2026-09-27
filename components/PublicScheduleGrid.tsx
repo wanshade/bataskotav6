@@ -14,7 +14,6 @@ import {
   ArrowRight,
   X,
 } from "lucide-react";
-import type { Booking } from "@/lib/schema";
 import {
   type ScheduleData,
   DEFAULT_SCHEDULE,
@@ -24,11 +23,23 @@ import {
   hasTimeOverlap,
 } from "@/lib/schedule";
 
+type PublicBooking = {
+  bookingDate: string;
+  timeSlot: string;
+  status: string;
+};
+
 export default function PublicScheduleGrid() {
   const router = useRouter();
 
   const [selectedDate, setSelectedDate] = useState<Date>(() => {
     return new Date();
+  });
+  const formattedDate = selectedDate.toLocaleDateString("id-ID", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
   });
   const [dateScrollIndex, setDateScrollIndex] = useState(0);
   const [selectedSlots, setSelectedSlots] = useState<string[]>([]);
@@ -38,20 +49,25 @@ export default function PublicScheduleGrid() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [bookings, setBookings] = useState<PublicBooking[]>([]);
   const [loadingBookings, setLoadingBookings] = useState(true);
   const [schedule, setSchedule] = useState<ScheduleData>(DEFAULT_SCHEDULE);
 
   const [addDokumentasi, setAddDokumentasi] = useState(false);
   const [addWasit, setAddWasit] = useState(false);
   
-  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [selectedBooking, setSelectedBooking] = useState<PublicBooking | null>(null);
 
   useEffect(() => {
+    const controller = new AbortController();
+
     const fetchBookings = async () => {
       try {
         setLoadingBookings(true);
-        const response = await fetch("/api/bookings");
+        const response = await fetch(
+          `/api/bookings?date=${encodeURIComponent(formattedDate)}`,
+          { signal: controller.signal, cache: "no-store" },
+        );
         if (response.ok) {
           const data = await response.json();
           if (data.bookings) {
@@ -59,14 +75,16 @@ export default function PublicScheduleGrid() {
           }
         }
       } catch (err) {
+        if (err instanceof DOMException && err.name === "AbortError") return;
         console.error("Failed to fetch bookings:", err);
       } finally {
-        setLoadingBookings(false);
+        if (!controller.signal.aborted) setLoadingBookings(false);
       }
     };
 
     fetchBookings();
-  }, []);
+    return () => controller.abort();
+  }, [formattedDate]);
 
   useEffect(() => {
     const fetchPricing = async () => {
@@ -146,7 +164,7 @@ export default function PublicScheduleGrid() {
     return false;
   };
 
-const getBookingForSlot = (slotLabel: string): Booking | undefined => {
+const getBookingForSlot = (slotLabel: string): PublicBooking | undefined => {
     return bookings.find(
       (b) =>
         b.bookingDate === formattedDate &&
@@ -172,24 +190,22 @@ const getBookingForSlot = (slotLabel: string): Booking | undefined => {
     setError(null);
 
     const priceFormatted = formatPrice(totalPrice);
-    const formattedDateVal = selectedDate.toLocaleDateString("id-ID", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
+    const formattedDateVal = formattedDate;
     const timeSlotStr = selectedSlots.join(", ");
 
     try {
       // Re-fetch bookings to get latest data before submitting
       try {
-        const freshRes = await fetch("/api/bookings");
+        const freshRes = await fetch(
+          `/api/bookings?date=${encodeURIComponent(formattedDateVal)}`,
+          { cache: "no-store" },
+        );
         if (freshRes.ok) {
           const freshData = await freshRes.json();
           if (freshData.bookings) {
             setBookings(freshData.bookings);
             const conflictSlot = selectedSlots.find(slot =>
-              freshData.bookings.some((b: Booking) =>
+              freshData.bookings.some((b: PublicBooking) =>
                 b.bookingDate === formattedDateVal &&
                 b.timeSlot.split(", ").some((ts: string) => hasTimeOverlap(ts, slot)) &&
                 (b.status === "confirmed" || b.status === "pending")
@@ -229,7 +245,10 @@ const getBookingForSlot = (slotLabel: string): Booking | undefined => {
         // If conflict (409), refresh bookings to update UI
         if (response.status === 409) {
           try {
-            const refreshRes = await fetch("/api/bookings");
+            const refreshRes = await fetch(
+              `/api/bookings?date=${encodeURIComponent(formattedDateVal)}`,
+              { cache: "no-store" },
+            );
             if (refreshRes.ok) {
               const refreshData = await refreshRes.json();
               if (refreshData.bookings) setBookings(refreshData.bookings);
@@ -313,13 +332,6 @@ Terima kasih! ⚽`;
       setIsSubmitting(false);
     }
   };
-
-  const formattedDate = selectedDate.toLocaleDateString("id-ID", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
 
   if (loadingBookings) {
     return (
@@ -699,20 +711,6 @@ const isBooked = bookings.some(
 
               <div className="bg-zinc-800/50 rounded-xl p-4">
                 <label className="block text-xs font-sans uppercase tracking-widest text-gray-500 mb-1">
-                  Booking ID
-                </label>
-                <p className="text-white font-mono font-bold">{selectedBooking.bookingId}</p>
-              </div>
-
-              <div className="bg-zinc-800/50 rounded-xl p-4">
-                <label className="block text-xs font-sans uppercase tracking-widest text-gray-500 mb-1">
-                  Nama Tim
-                </label>
-                <p className="text-white font-bold">{selectedBooking.teamName}</p>
-              </div>
-
-              <div className="bg-zinc-800/50 rounded-xl p-4">
-                <label className="block text-xs font-sans uppercase tracking-widest text-gray-500 mb-1">
                   Tanggal
                 </label>
                 <p className="text-white font-bold">{selectedBooking.bookingDate}</p>
@@ -725,30 +723,9 @@ const isBooked = bookings.some(
                 <p className="text-white font-bold">{selectedBooking.timeSlot}</p>
               </div>
 
-              <div className="bg-zinc-800/50 rounded-xl p-4">
-                <label className="block text-xs font-sans uppercase tracking-widest text-gray-500 mb-1">
-                  Total Harga
-                </label>
-                <p className="text-2xl font-display font-black text-neon-green">{selectedBooking.price}</p>
-              </div>
-
-              {selectedBooking.addDokumentasi && (
-                <div className="bg-neon-green/10 rounded-xl p-4 border border-neon-green/20">
-                  <label className="block text-xs font-sans uppercase tracking-widest text-neon-green mb-1">
-                    Layanan Tambahan
-                  </label>
-                  <p className="text-white font-bold">📸 Dokumentasi (Foto/Video)</p>
-                </div>
-              )}
-
-              {selectedBooking.addWasit && (
-                <div className="bg-neon-green/10 rounded-xl p-4 border border-neon-green/20">
-                  <label className="block text-xs font-sans uppercase tracking-widest text-neon-green mb-1">
-                    Layanan Tambahan
-                  </label>
-                  <p className="text-white font-bold">🏁 Wasit Pertandingan</p>
-                </div>
-              )}
+              <p className="text-xs leading-relaxed text-gray-400">
+                Detail pelanggan disembunyikan. Gunakan menu cek booking dengan Booking ID untuk melihat reservasi Anda sendiri.
+              </p>
             </div>
 
             <button

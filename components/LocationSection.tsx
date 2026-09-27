@@ -58,7 +58,7 @@ const LocationSection: React.FC = () => {
 
             {/* Open Maps Button */}
             <a 
-              href="https://maps.google.com/?q=-8.653335991398,116.537138674778" 
+              href="https://maps.app.goo.gl/h6W1PFLEWQmoEKKbA"
               target="_blank" 
               rel="noreferrer"
               className="mt-4 inline-flex items-center gap-2 text-neon-green font-display text-sm tracking-widest hover:text-white transition-colors group"

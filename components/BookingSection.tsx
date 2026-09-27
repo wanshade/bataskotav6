@@ -27,6 +27,12 @@ const BookingSection: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<Date>(() => {
     return new Date();
   });
+  const selectedDateLabel = selectedDate.toLocaleDateString('id-ID', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
   const [selectedSlots, setSelectedSlots] = useState<string[]>([]);
   const [dateScrollIndex, setDateScrollIndex] = useState(0);
   const [teamName, setTeamName] = useState('');
@@ -40,9 +46,14 @@ const BookingSection: React.FC = () => {
 
   // Fetch bookings on mount
   useEffect(() => {
+    const controller = new AbortController();
+
     const fetchBookings = async () => {
       try {
-        const response = await fetch('/api/bookings');
+        const response = await fetch(
+          `/api/bookings?date=${encodeURIComponent(selectedDateLabel)}`,
+          { signal: controller.signal, cache: 'no-store' },
+        );
         if (response.ok) {
           const data = await response.json();
           if (data.bookings) {
@@ -50,12 +61,14 @@ const BookingSection: React.FC = () => {
           }
         }
       } catch (err) {
+        if (err instanceof DOMException && err.name === 'AbortError') return;
         console.error('Failed to fetch bookings:', err);
       }
     };
 
     fetchBookings();
-  }, []);
+    return () => controller.abort();
+  }, [selectedDateLabel]);
 
   // Fetch pricing on mount
   useEffect(() => {
@@ -128,18 +141,18 @@ const BookingSection: React.FC = () => {
     try {
       // Re-fetch bookings to get latest data before submitting
       try {
-        const freshRes = await fetch('/api/bookings');
+        const freshRes = await fetch(
+          `/api/bookings?date=${encodeURIComponent(selectedDateLabel)}`,
+          { cache: 'no-store' },
+        );
         if (freshRes.ok) {
           const freshData = await freshRes.json();
           if (freshData.bookings) {
             setBookings(freshData.bookings);
             // Re-check selected slots against fresh data
-            const formattedDateCheck = selectedDate.toLocaleDateString('id-ID', {
-              weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
-            });
             const conflictSlot = selectedSlots.find(slot =>
               freshData.bookings.some((b: Booking) =>
-                b.bookingDate === formattedDateCheck &&
+                b.bookingDate === selectedDateLabel &&
                 b.timeSlot.split(', ').some((ts: string) => hasTimeOverlap(ts, slot)) &&
                 (b.status === 'confirmed' || b.status === 'pending')
               )
@@ -156,12 +169,7 @@ const BookingSection: React.FC = () => {
       }
 
       // Format date for display
-      const formattedDate = selectedDate.toLocaleDateString('id-ID', {
-        weekday: 'long',
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric'
-      });
+      const formattedDate = selectedDateLabel;
 
       const timeSlotStr = selectedSlots.join(', ');
       const priceFormatted = formatPrice(totalPrice);
@@ -189,7 +197,10 @@ const BookingSection: React.FC = () => {
         // If conflict (409), refresh bookings to update UI
         if (response.status === 409) {
           try {
-            const refreshRes = await fetch('/api/bookings');
+            const refreshRes = await fetch(
+              `/api/bookings?date=${encodeURIComponent(formattedDate)}`,
+              { cache: 'no-store' },
+            );
             if (refreshRes.ok) {
               const refreshData = await refreshRes.json();
               if (refreshData.bookings) setBookings(refreshData.bookings);
