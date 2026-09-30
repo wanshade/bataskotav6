@@ -2,8 +2,10 @@
 
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import {
   AlertCircle,
+  ArrowLeft,
   Calendar as CalendarIcon,
   Camera,
   Check,
@@ -285,48 +287,38 @@ export function BookingSystem() {
   };
 
   return (
-    <section id="booking" className="border-t border-terracotta-200 bg-porcelain py-16 dark:border-terracotta-900 dark:bg-black md:py-24">
+    <section id="booking" className="border-t border-neutral-200 bg-neutral-50 py-16 dark:border-neutral-900 dark:bg-black md:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-10 max-w-3xl">
-          <span className="font-mono text-xs uppercase tracking-widest text-neutral-500">1 lapangan · Satu jadwal booking</span>
-          <h2 className="mt-3 text-3xl font-bold uppercase text-neutral-900 dark:text-white sm:text-5xl">Booking Batas Kota Arena</h2>
+          <Link href="/" className="inline-flex min-h-10 items-center gap-2 text-xs text-neutral-500 hover:text-neutral-900 dark:hover:text-white"><ArrowLeft aria-hidden="true" className="h-4 w-4" />Batas Kota Point</Link>
+          <h1 className="mt-3 text-3xl font-medium text-neutral-900 dark:text-white sm:text-4xl">Reservasi Batas Kota Arena</h1>
           <p className="mt-4 text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
-            Pilih tanggal dan jam main. Harga serta ketersediaan tetap mengikuti data operasional Batas Kota Arena.
+            Pilih tanggal dan jadwal bermain Anda. Harga dan ketersediaan ditampilkan pada setiap sesi.
           </p>
           <ul className="mt-6 flex flex-wrap gap-x-6 gap-y-3 text-xs text-neutral-600 dark:text-neutral-300">
-            <li className="flex items-center gap-2"><Clock className="h-4 w-4 text-terracotta-600 dark:text-terracotta-300" />06:00 - 24:00 WITA</li>
-            <li className="flex items-center gap-2"><Flag className="h-4 w-4 text-terracotta-600 dark:text-terracotta-300" />Wasit opsional</li>
-            <li className="flex items-center gap-2"><Camera className="h-4 w-4 text-terracotta-600 dark:text-terracotta-300" />Dokumentasi opsional</li>
+            <li className="flex items-center gap-2"><Clock className="h-4 w-4 text-neutral-600 dark:text-neutral-300" />06:00 - 24:00 WITA</li>
+            <li className="flex items-center gap-2"><Flag className="h-4 w-4 text-neutral-600 dark:text-neutral-300" />Wasit opsional</li>
+            <li className="flex items-center gap-2"><Camera className="h-4 w-4 text-neutral-600 dark:text-neutral-300" />Dokumentasi opsional</li>
           </ul>
         </div>
 
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
           <div className="space-y-5 lg:col-span-8">
-            <div className="rounded-xl border border-terracotta-200 bg-terracotta-50 p-5 dark:border-terracotta-900 dark:bg-terracotta-950/30 sm:p-6">
-              <span className="font-mono text-[11px] uppercase tracking-widest text-neutral-500">Lapangan yang dibooking</span>
-              <div className="mt-2">
-                <div>
-                  <h3 className="text-xl font-bold text-neutral-900 dark:text-white">Batas Kota Arena</h3>
-                  <p className="mt-1 text-xs text-neutral-500">Mini soccer · Kota Selong</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="rounded-xl border border-terracotta-200 bg-white p-5 dark:border-terracotta-900 dark:bg-neutral-900 sm:p-6">
+            <div className="rounded-lg border border-neutral-200 bg-white p-5 dark:border-neutral-900 dark:bg-neutral-900 sm:p-6">
               <div className="mb-5">
                 <span className="font-mono text-xs font-semibold uppercase tracking-widest text-neutral-500">01 · Pilih tanggal & jam</span>
               </div>
 
               <div className="mb-3 flex items-center justify-between gap-2">
                 <p id="booking-date-range" aria-live="polite" className="flex min-w-0 items-center gap-2 text-xs font-medium text-neutral-800 dark:text-neutral-200 sm:text-sm">
-                  <CalendarIcon aria-hidden="true" className="h-4 w-4 shrink-0 text-terracotta-600 dark:text-terracotta-300" />
+                  <CalendarIcon aria-hidden="true" className="h-4 w-4 shrink-0 text-neutral-600 dark:text-neutral-300" />
                   {dateRangeLabel}
                 </p>
                 <div className="flex shrink-0 gap-1">
-                  <button type="button" aria-label="Tanggal sebelumnya" title="Tanggal sebelumnya" disabled={datePage === 0} onClick={() => setDatePage((page) => Math.max(0, page - 1))} className="flex h-10 w-10 items-center justify-center rounded-md text-neutral-700 transition-colors hover:bg-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terracotta-500 disabled:cursor-not-allowed disabled:opacity-25 dark:text-neutral-200 dark:hover:bg-neutral-800">
+                  <button type="button" aria-label="Tanggal sebelumnya" title="Tanggal sebelumnya" disabled={datePage === 0} onClick={() => setDatePage((page) => Math.max(0, page - 1))} className="flex h-10 w-10 items-center justify-center rounded-md text-neutral-700 transition-colors hover:bg-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-500 disabled:cursor-not-allowed disabled:opacity-25 dark:text-neutral-200 dark:hover:bg-neutral-800">
                     <ChevronLeft aria-hidden="true" className="h-5 w-5" />
                   </button>
-                  <button type="button" aria-label="Tanggal berikutnya" title="Tanggal berikutnya" disabled={datePage === datePageCount - 1} onClick={() => setDatePage((page) => Math.min(datePageCount - 1, page + 1))} className="flex h-10 w-10 items-center justify-center rounded-md text-neutral-700 transition-colors hover:bg-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terracotta-500 disabled:cursor-not-allowed disabled:opacity-25 dark:text-neutral-200 dark:hover:bg-neutral-800">
+                  <button type="button" aria-label="Tanggal berikutnya" title="Tanggal berikutnya" disabled={datePage === datePageCount - 1} onClick={() => setDatePage((page) => Math.min(datePageCount - 1, page + 1))} className="flex h-10 w-10 items-center justify-center rounded-md text-neutral-700 transition-colors hover:bg-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-500 disabled:cursor-not-allowed disabled:opacity-25 dark:text-neutral-200 dark:hover:bg-neutral-800">
                     <ChevronRight aria-hidden="true" className="h-5 w-5" />
                   </button>
                 </div>
@@ -347,7 +339,7 @@ export function BookingSystem() {
                         setSelectedSlots([]);
                         setError(null);
                       }}
-                      className={`flex h-[88px] min-w-0 flex-col items-center justify-center gap-1 rounded-lg text-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terracotta-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-neutral-900 ${selected ? 'bg-terracotta-600 text-white dark:bg-terracotta-500' : 'bg-neutral-50 text-neutral-700 hover:bg-terracotta-50 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700'}`}
+                      className={`flex h-[88px] min-w-0 flex-col items-center justify-center gap-1 rounded-lg text-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-neutral-900 ${selected ? 'bg-neutral-950 text-white dark:bg-neutral-500' : 'bg-neutral-50 text-neutral-700 hover:bg-neutral-50 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700'}`}
                     >
                       <span className="text-[11px] leading-4">{date.toLocaleDateString('id-ID', { weekday: 'short' })}</span>
                       <span className="text-xl font-semibold leading-6 tabular-nums">{date.getDate()}</span>
@@ -358,7 +350,7 @@ export function BookingSystem() {
               </div>
               <div aria-hidden="true" className="mt-3 flex justify-center gap-1.5">
                 {Array.from({ length: datePageCount }, (_, index) => (
-                  <span key={index} className={`h-1 rounded-full transition-colors ${index === datePage ? 'w-5 bg-terracotta-600 dark:bg-terracotta-400' : 'w-1 bg-neutral-200 dark:bg-neutral-700'}`} />
+                  <span key={index} className={`h-1 rounded-full transition-colors ${index === datePage ? 'w-5 bg-neutral-950 dark:bg-neutral-400' : 'w-1 bg-neutral-200 dark:bg-neutral-700'}`} />
                 ))}
               </div>
 
@@ -374,8 +366,8 @@ export function BookingSystem() {
                   const state = getSlotState(slot.label);
                   const disabled = state === 'confirmed' || state === 'pending' || state === 'passed' || isLoading;
                   const styles: Record<SlotState, string> = {
-                    available: 'border-terracotta-200 bg-white text-neutral-800 hover:border-terracotta-500 dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-200 dark:hover:border-terracotta-500',
-                    selected: 'border-terracotta-600 bg-terracotta-600 text-white dark:border-terracotta-400 dark:bg-terracotta-500 dark:text-white',
+                    available: 'border-neutral-200 bg-white text-neutral-800 hover:border-neutral-500 dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-200 dark:hover:border-neutral-500',
+                    selected: 'border-neutral-600 bg-neutral-950 text-white dark:border-neutral-400 dark:bg-neutral-500 dark:text-white',
                     pending: 'cursor-not-allowed border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-400',
                     confirmed: 'cursor-not-allowed border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-900 dark:bg-rose-950/30 dark:text-rose-400',
                     passed: 'cursor-not-allowed border-neutral-200 bg-neutral-100 text-neutral-400 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-600',
@@ -400,25 +392,25 @@ export function BookingSystem() {
               <p className="mt-3 flex items-start gap-1.5 text-xs text-neutral-500"><Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />Setiap slot berlangsung 2 jam. Slot yang dipilih dapat digabung dalam satu booking.</p>
             </div>
 
-            <div className="rounded-xl border border-terracotta-200 bg-terracotta-50 p-5 dark:border-terracotta-900 dark:bg-terracotta-950/30 sm:p-6">
+            <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-5 dark:border-neutral-900 dark:bg-neutral-950/30 sm:p-6">
               <span className="font-mono text-xs font-semibold uppercase tracking-widest text-neutral-500">02 · Layanan tambahan (opsional)</span>
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                <button type="button" aria-pressed={addDokumentasi} onClick={() => setAddDokumentasi((value) => !value)} className={`flex min-h-[84px] items-center gap-4 rounded-lg border p-4 text-left transition-colors ${addDokumentasi ? 'border-terracotta-600 bg-terracotta-100 dark:border-terracotta-500 dark:bg-terracotta-950/40' : 'border-terracotta-200 bg-white hover:border-terracotta-500 dark:border-neutral-800 dark:bg-neutral-950'}`}>
+                <button type="button" aria-pressed={addDokumentasi} onClick={() => setAddDokumentasi((value) => !value)} className={`flex min-h-[84px] items-center gap-4 rounded-lg border p-4 text-left transition-colors ${addDokumentasi ? 'border-neutral-600 bg-neutral-100 dark:border-neutral-500 dark:bg-neutral-950/40' : 'border-neutral-200 bg-white hover:border-neutral-500 dark:border-neutral-800 dark:bg-neutral-950'}`}>
                   <Camera className="h-5 w-5 shrink-0" />
                   <span className="min-w-0 flex-1"><strong className="block text-sm text-neutral-900 dark:text-white">Dokumentasi</strong><span className="mt-1 block text-xs text-neutral-500">Foto atau video pertandingan</span></span>
-                  {addDokumentasi && <Check className="h-4 w-4 text-terracotta-700 dark:text-terracotta-300" />}
+                  {addDokumentasi && <Check className="h-4 w-4 text-neutral-700 dark:text-neutral-300" />}
                 </button>
-                <button type="button" aria-pressed={addWasit} onClick={() => setAddWasit((value) => !value)} className={`flex min-h-[84px] items-center gap-4 rounded-lg border p-4 text-left transition-colors ${addWasit ? 'border-terracotta-600 bg-terracotta-100 dark:border-terracotta-500 dark:bg-terracotta-950/40' : 'border-terracotta-200 bg-white hover:border-terracotta-500 dark:border-neutral-800 dark:bg-neutral-950'}`}>
+                <button type="button" aria-pressed={addWasit} onClick={() => setAddWasit((value) => !value)} className={`flex min-h-[84px] items-center gap-4 rounded-lg border p-4 text-left transition-colors ${addWasit ? 'border-neutral-600 bg-neutral-100 dark:border-neutral-500 dark:bg-neutral-950/40' : 'border-neutral-200 bg-white hover:border-neutral-500 dark:border-neutral-800 dark:bg-neutral-950'}`}>
                   <Flag className="h-5 w-5 shrink-0" />
                   <span className="min-w-0 flex-1"><strong className="block text-sm text-neutral-900 dark:text-white">Wasit pertandingan</strong><span className="mt-1 block text-xs text-neutral-500">Konfirmasi ketersediaan oleh admin</span></span>
-                  {addWasit && <Check className="h-4 w-4 text-terracotta-700 dark:text-terracotta-300" />}
+                  {addWasit && <Check className="h-4 w-4 text-neutral-700 dark:text-neutral-300" />}
                 </button>
               </div>
             </div>
           </div>
 
           <div className="lg:col-span-4">
-            <div className="sticky top-28 rounded-xl border border-terracotta-300 bg-white p-6 shadow-sm dark:border-terracotta-900 dark:bg-neutral-900">
+            <div className="sticky top-28 rounded-lg border border-neutral-300 bg-white p-6 shadow-sm dark:border-neutral-900 dark:bg-neutral-900">
               <span className="font-mono text-xs font-semibold uppercase tracking-widest text-neutral-500">Booking summary</span>
               <div className="mt-3 border-b border-neutral-200 pb-4 dark:border-neutral-800">
                 <h3 className="font-bold text-neutral-900 dark:text-white">Batas Kota Arena</h3>
@@ -445,13 +437,13 @@ export function BookingSystem() {
                 {error && <div role="alert" className="flex gap-2 rounded-md border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300"><AlertCircle className="h-4 w-4 shrink-0" />{error}</div>}
                 <div>
                   <label htmlFor="booking-team" className="mb-1 block text-xs font-semibold text-neutral-700 dark:text-neutral-300">Nama tim *</label>
-                  <input id="booking-team" required value={teamName} onChange={(event) => setTeamName(event.target.value)} placeholder="Contoh: FC Selong" className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2.5 text-sm text-neutral-900 outline-none focus:border-terracotta-600 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white dark:focus:border-terracotta-400" />
+                  <input id="booking-team" required value={teamName} onChange={(event) => setTeamName(event.target.value)} placeholder="Contoh: FC Selong" className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2.5 text-sm text-neutral-900 outline-none focus:border-neutral-600 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white dark:focus:border-neutral-400" />
                 </div>
                 <div>
                   <label htmlFor="booking-phone" className="mb-1 block text-xs font-semibold text-neutral-700 dark:text-neutral-300">Nomor WhatsApp *</label>
-                  <input id="booking-phone" type="tel" required value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="0812 3456 7890" className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2.5 text-sm text-neutral-900 outline-none focus:border-terracotta-600 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white dark:focus:border-terracotta-400" />
+                  <input id="booking-phone" type="tel" required value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="0812 3456 7890" className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2.5 text-sm text-neutral-900 outline-none focus:border-neutral-600 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white dark:focus:border-neutral-400" />
                 </div>
-                <button type="submit" disabled={isSubmitting || isLoading || selectedSlots.length === 0} className="flex w-full items-center justify-center gap-2 rounded-md bg-terracotta-600 px-4 py-3 text-xs font-bold uppercase text-white transition-colors hover:bg-terracotta-700 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-terracotta-500 dark:text-white dark:hover:bg-terracotta-400">
+                <button type="submit" disabled={isSubmitting || isLoading || selectedSlots.length === 0} className="flex w-full items-center justify-center gap-2 rounded-md bg-neutral-950 px-4 py-3 text-xs font-bold uppercase text-white transition-colors hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-neutral-500 dark:text-white dark:hover:bg-neutral-400">
                   <CheckCircle2 className="h-4 w-4" />{isSubmitting ? 'Memproses booking...' : 'Booking jadwal ini'}
                 </button>
                 <p className="flex items-start justify-center gap-1.5 pt-2 text-center font-mono text-[10px] leading-relaxed text-neutral-500"><Shield className="mt-0.5 h-3.5 w-3.5 shrink-0" />Booking berstatus pending sampai pembayaran dikonfirmasi admin.</p>

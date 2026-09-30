@@ -1,66 +1,43 @@
 import Image from 'next/image';
+import Link from 'next/link';
 import { Dancing_Script } from 'next/font/google';
-import { ArrowUpRight } from 'lucide-react';
+import { ArrowDown, ArrowUpRight } from 'lucide-react';
 import { VENUE_IMAGES } from '@/lib/venueAssets';
 
 const dancingScript = Dancing_Script({ subsets: ['latin'], weight: '600', display: 'swap' });
 
 export function Hero() {
   return (
-    <section id="hero-section" aria-labelledby="hero-main-title" className="font-sans">
-      <div className="relative isolate h-[520px] overflow-hidden bg-terracotta-950 sm:h-[580px] lg:h-[min(660px,72svh)] lg:min-h-[520px]">
-        <Image
-          src={VENUE_IMAGES.venueOverview}
-          alt="Visual konsep Batas Kota Point dengan Pora Social House, Batas Kota Arena, dan padel"
-          fill
-          priority
-          sizes="100vw"
-          className="object-cover object-[62%_center] sm:object-center"
-        />
-        <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(180deg,rgba(17,16,15,0.18)_15%,rgba(47,20,15,0.42)_48%,rgba(17,16,15,0.92)_100%)]" />
-        <div className="relative mx-auto flex h-full max-w-7xl flex-col justify-end px-6 pb-9 sm:px-8 sm:pb-12 lg:px-8 lg:pb-14">
-          <p className="absolute right-6 top-5 text-[10px] tracking-wide text-white/90 sm:right-8 sm:top-6">
-            Visual konsep kawasan
-          </p>
-          <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-end">
-            <div className="min-w-0 max-w-2xl">
-              <h1
-                id="hero-main-title"
-                className="text-[clamp(3.75rem,19.5vw,4.75rem)] font-medium leading-[0.88] tracking-[-0.065em] text-[#fffdf5] sm:text-[104px] lg:text-[136px]"
-              >
-                Batas Kota<br />Point.
-              </h1>
-              <p className={`${dancingScript.className} mt-6 text-5xl leading-tight text-[#fffdf5] sm:mt-8 sm:text-6xl lg:text-7xl`}>
-                The Social House
-              </p>
+    <section id="hero-section" aria-labelledby="hero-main-title" className="relative isolate h-[88svh] min-h-[560px] max-h-[880px] overflow-hidden bg-[#111213] text-white">
+      <Image
+        src={VENUE_IMAGES.venueOverview}
+        alt="Visual konsep kawasan Batas Kota Point dengan Arena, Pora Social House, dan lapangan padel"
+        fill
+        priority
+        sizes="100vw"
+        className="object-cover object-[56%_center]"
+      />
+      <div aria-hidden="true" className="absolute inset-0 bg-black/35" />
+      <div className="relative mx-auto flex h-full max-w-[1440px] flex-col justify-end px-5 pb-7 pt-28 sm:px-10 sm:pb-9 lg:px-16">
+        <div>
+          <h1 id="hero-main-title" className="max-w-5xl text-[47px] font-medium leading-[0.97] min-[400px]:text-[58px] sm:text-[84px] lg:text-[116px]">
+            Batas Kota<br />Point.
+          </h1>
+          <div className="mt-6 grid gap-6 border-t border-white/50 pt-5 sm:mt-9 sm:pt-6 md:grid-cols-12 md:items-end">
+            <p className={`${dancingScript.className} max-w-lg text-[44px] leading-[1.1] text-white sm:text-[58px] md:col-span-6`}>
+              The Social House
+            </p>
+            <div className="flex flex-wrap gap-3 md:col-span-6 md:justify-end">
+              <Link href="/schedule" className="inline-flex min-h-12 items-center justify-center gap-6 rounded-sm bg-white px-5 text-sm font-medium text-[#111213] transition-colors hover:bg-[#111213] hover:text-white">
+                Reservasi Arena <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
+              </Link>
+              <a href="#facilities" className="inline-flex min-h-12 items-center justify-center gap-5 rounded-sm border border-white/70 px-5 text-sm font-medium transition-colors hover:bg-white/10">
+                Jelajahi kawasan <ArrowDown aria-hidden="true" className="h-4 w-4" />
+              </a>
             </div>
-            <a
-              href="https://www.instagram.com/bataskota.arena/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group inline-flex shrink-0 items-center gap-5 border-b border-white/60 pb-2 text-sm text-white transition-colors hover:border-white focus-visible:outline-white sm:mb-1"
-            >
-              Open Instagram
-              <ArrowUpRight aria-hidden="true" className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-            </a>
           </div>
-        </div>
-      </div>
-
-      <div className="border-b border-terracotta-700 bg-terracotta-600 text-white dark:border-terracotta-800 dark:bg-terracotta-700 dark:text-white">
-        <div className="mx-auto max-w-7xl px-6 py-7 sm:px-8 sm:py-8">
-          <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-center sm:gap-6">
-            <div>
-              <h2 className="text-lg font-medium tracking-tight">Olahraga dan kumpul di Batas Kota.</h2>
-            </div>
-            <a
-              id="hero-book-now-btn"
-              href="#booking"
-              className="group inline-flex min-h-12 min-w-0 items-center justify-between gap-4 bg-black px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-neutral-800 focus-visible:outline-white"
-            >
-              <span className="min-w-0 leading-relaxed">Booking Batas Kota Arena mini soccer</span>
-              <ArrowUpRight aria-hidden="true" className="h-4 w-4 shrink-0 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-            </a>
+          <div className="mt-7 flex justify-end text-[11px] font-medium text-white/85 sm:mt-9 sm:text-xs">
+            <span>Arena / Pora.sch</span>
           </div>
         </div>
       </div>

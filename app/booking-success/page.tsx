@@ -76,22 +76,22 @@ function BookingSuccessContent() {
   );
 
   return (
-    <div className="public-site min-h-screen bg-porcelain text-ink dark:bg-black dark:text-neutral-100">
-      <header className="border-b border-terracotta-700 bg-black text-white backdrop-blur-md dark:border-terracotta-800 dark:bg-black">
+    <div className="public-site min-h-screen bg-neutral-50 text-neutral-950 dark:bg-black dark:text-neutral-100">
+      <header className="border-b border-neutral-700 bg-black text-white backdrop-blur-md dark:border-neutral-800 dark:bg-black">
         <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-3">
             <Image src={VENUE_IMAGES.logo} alt="Batas Kota Point" width={44} height={44} className="rounded-md" />
             <span className="flex flex-col"><strong className="text-sm uppercase sm:text-base">Batas Kota Point</strong><span className="font-mono text-[9px] uppercase tracking-widest text-neutral-500">Arena · Pora.sch · Padel</span></span>
           </Link>
-          <Link href="/#booking" className="flex items-center gap-2 rounded-md border border-neutral-700 px-3.5 py-2 text-xs font-semibold transition-colors hover:border-terracotta-500 hover:text-terracotta-300"><ArrowLeft className="h-4 w-4" />Kembali</Link>
+          <Link href="/schedule" className="flex items-center gap-2 rounded-md border border-neutral-700 px-3.5 py-2 text-xs font-semibold transition-colors hover:border-neutral-500 hover:text-neutral-300"><ArrowLeft className="h-4 w-4" />Kembali</Link>
         </div>
       </header>
 
       <main className="mx-auto max-w-6xl px-4 py-12 sm:px-6 md:py-16 lg:px-8">
         <div className="grid gap-8 lg:grid-cols-[1.08fr_0.92fr] lg:gap-12">
           <section>
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-terracotta-200 text-terracotta-800 dark:bg-terracotta-950 dark:text-terracotta-300"><CheckCircle2 className="h-6 w-6" /></div>
-            <p className="mt-6 font-mono text-xs font-semibold uppercase tracking-widest text-terracotta-700 dark:text-terracotta-300">Booking berhasil dibuat</p>
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-neutral-200 text-neutral-800 dark:bg-neutral-950 dark:text-neutral-300"><CheckCircle2 className="h-6 w-6" /></div>
+            <p className="mt-6 font-mono text-xs font-semibold uppercase tracking-widest text-neutral-700 dark:text-neutral-300">Booking berhasil dibuat</p>
             <h1 className="mt-3 max-w-xl text-4xl font-medium leading-tight sm:text-6xl">Sampai ketemu di lapangan.</h1>
             <p className="mt-5 max-w-xl text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">Jadwal Anda sedang ditahan dengan status pending. Selesaikan pembayaran dan kirim bukti transfer ke admin agar booking dikonfirmasi.</p>
 
@@ -122,17 +122,17 @@ function BookingSuccessContent() {
             </div>
           </section>
 
-          <aside className="self-start rounded-xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900 sm:p-8">
+          <aside className="self-start rounded-lg border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900 sm:p-8">
             <div className="flex items-center gap-3"><CreditCard className="h-5 w-5" /><h2 className="text-xl font-bold">Instruksi pembayaran</h2></div>
             <p className="mt-3 text-sm text-neutral-500">Transfer ke rekening resmi berikut, lalu kirim bukti pembayaran kepada admin.</p>
             <div className="mt-6 space-y-5 border-y border-neutral-200 py-5 dark:border-neutral-800">
               <div><p className="text-[10px] uppercase tracking-wider text-neutral-500">Nama penerima</p><p className="mt-1 font-semibold">{bankAccountName}</p></div>
               <div><p className="text-[10px] uppercase tracking-wider text-neutral-500">Bank</p><p className="mt-1 font-semibold">{bankName.toUpperCase()}</p></div>
-              <div><p className="text-[10px] uppercase tracking-wider text-neutral-500">Nomor rekening</p><div className="mt-1 flex items-center justify-between gap-3"><strong className="break-all font-mono text-xl">{bankAccount}</strong><button type="button" onClick={copyAccount} aria-label="Salin nomor rekening" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-terracotta-200 hover:bg-terracotta-50 dark:border-neutral-700 dark:hover:bg-neutral-800">{copied ? <Check className="h-4 w-4 text-terracotta-600" /> : <Copy className="h-4 w-4" />}</button></div></div>
+              <div><p className="text-[10px] uppercase tracking-wider text-neutral-500">Nomor rekening</p><div className="mt-1 flex items-center justify-between gap-3"><strong className="break-all font-mono text-xl">{bankAccount}</strong><button type="button" onClick={copyAccount} aria-label="Salin nomor rekening" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-neutral-200 hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-800">{copied ? <Check className="h-4 w-4 text-neutral-600" /> : <Copy className="h-4 w-4" />}</button></div></div>
             </div>
 
             <div className="mt-5 flex gap-3 rounded-md border border-rose-200 bg-rose-50 p-4 text-xs leading-relaxed text-rose-800 dark:border-rose-900 dark:bg-rose-950/30 dark:text-rose-300"><AlertTriangle className="h-4 w-4 shrink-0" /><p>Transfer hanya ke rekening atas nama <strong>CV BATAS KOTA POINT</strong>. Pastikan nama penerima sesuai sebelum transfer.</p></div>
-            <a href={`https://wa.me/${whatsAppNumber}?text=${whatsAppText}`} target="_blank" rel="noopener noreferrer" className="mt-5 flex w-full items-center justify-center gap-2 rounded-md bg-terracotta-600 px-4 py-3 text-xs font-bold uppercase text-white transition-colors hover:bg-terracotta-700"><MessageCircle className="h-4 w-4" />Konfirmasi via WhatsApp</a>
+            <a href={`https://wa.me/${whatsAppNumber}?text=${whatsAppText}`} target="_blank" rel="noopener noreferrer" className="mt-5 flex w-full items-center justify-center gap-2 rounded-md bg-neutral-950 px-4 py-3 text-xs font-bold uppercase text-white transition-colors hover:bg-neutral-700"><MessageCircle className="h-4 w-4" />Konfirmasi via WhatsApp</a>
             <p className="mt-3 text-center font-mono text-[10px] text-neutral-500">Admin WhatsApp: {adminWhatsApp}</p>
           </aside>
         </div>
@@ -144,7 +144,7 @@ function BookingSuccessContent() {
 
         <section className="mt-12 flex flex-col justify-between gap-5 border-t border-[#c9c5ba] py-8 dark:border-neutral-700 sm:flex-row sm:items-center">
           <div><p className="font-mono text-xs uppercase tracking-widest text-neutral-500">Periode booking</p><p className="mt-2 max-w-2xl text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">Minimum order 1 jam sebelum bermain. Booking kurang dari 1 jam hanya dapat dilakukan melalui WhatsApp admin. Semua booking wajib dilunasi.</p></div>
-          <Link href="/#booking" className="flex min-h-12 shrink-0 items-center justify-center gap-2 bg-black px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-terracotta-700 dark:bg-terracotta-600 dark:text-white"><ArrowLeft className="h-4 w-4" />Kembali ke booking</Link>
+          <Link href="/schedule" className="flex min-h-12 shrink-0 items-center justify-center gap-2 bg-black px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-neutral-700 dark:bg-neutral-950 dark:text-white"><ArrowLeft className="h-4 w-4" />Kembali ke booking</Link>
         </section>
       </main>
     </div>
@@ -153,7 +153,7 @@ function BookingSuccessContent() {
 
 export default function BookingSuccessPage() {
   return (
-    <Suspense fallback={<div className="flex min-h-screen items-center justify-center bg-porcelain text-sm text-neutral-500 dark:bg-black">Memuat booking...</div>}>
+    <Suspense fallback={<div className="flex min-h-screen items-center justify-center bg-neutral-50 text-sm text-neutral-500 dark:bg-black">Memuat booking...</div>}>
       <BookingSuccessContent />
     </Suspense>
   );

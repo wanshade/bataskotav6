@@ -1,24 +1,26 @@
 import Image from 'next/image';
-import { Clock, ArrowUpRight } from 'lucide-react';
+import { ArrowUpRight } from 'lucide-react';
 import { CAFE_GALLERY } from '@/lib/venueAssets';
 
 export function CafeHighlights() {
   return (
-    <section id="cafe-menu" className="border-t border-terracotta-900 bg-black py-16 text-white dark:border-terracotta-900 dark:bg-black md:py-24">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
-          <div><span className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-terracotta-300"><Clock className="h-4 w-4" />Pora.sch · Coming Soon</span><h2 className="mt-3 text-3xl font-bold uppercase tracking-tight sm:text-5xl">Pora Social House.<br />A new place to stay.</h2></div>
-          <p className="max-w-md text-sm leading-relaxed text-neutral-400">Sudut hijau, ruang terbuka, dan tempat untuk kumpul setelah main. Ini gambaran Pora Social House yang akan hadir. Menu dan reservasi menyusul saat pembukaan.</p>
+    <section id="social-house" aria-labelledby="pora-title" className="bg-[#111213] py-20 text-[#f4f2ed] sm:py-28">
+      <div id="cafe-menu" className="mx-auto max-w-[1440px] px-5 sm:px-10 lg:px-16">
+        <div className="mb-10 grid gap-7 border-b border-white/20 pb-10 lg:grid-cols-12 lg:gap-12">
+          <div className="lg:col-span-7"><span className="text-sm text-[#ff6a1a]">02 / Social House / Coming Soon</span><h2 id="pora-title" className="mt-4 text-5xl font-medium leading-[1.05] sm:text-7xl">Pora Social House.</h2><p className="mt-4 text-lg text-white/60">A new place to stay.</p></div>
+          <div className="lg:col-span-5 lg:self-end"><p className="max-w-lg text-base leading-8 text-white/65">Ruang untuk menikmati waktu bersama, di antara arsitektur terbuka dan suasana hijau. Pora Social House sedang disiapkan sebagai bagian dari Batas Kota Point.</p><a href="https://www.instagram.com/bataskota.arena/" target="_blank" rel="noopener noreferrer" className="mt-5 inline-flex min-h-11 items-center gap-6 border-b border-white/40 text-sm hover:border-white hover:text-[#ff6a1a]">Ikuti perkembangannya<ArrowUpRight aria-hidden="true" className="h-4 w-4" /></a></div>
         </div>
         <div className="grid grid-cols-2 gap-2 sm:gap-4 lg:grid-cols-4">
           {CAFE_GALLERY.map(({ image, alt }, index) => (
             <figure key={image.src} className={index === 0 ? 'col-span-2 lg:row-span-2' : ''}>
-              <div className={`relative overflow-hidden rounded-xl bg-neutral-900 ring-1 ring-terracotta-900 ${index === 0 ? 'aspect-[2/1] sm:aspect-[16/10] lg:aspect-auto lg:h-full lg:min-h-64' : 'aspect-video sm:aspect-[16/10]'}`}><Image src={image} alt={alt} fill sizes={index === 0 ? '(max-width: 1024px) 100vw, 608px' : '(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 304px'} className="object-cover" /></div>
+              <div className={`relative overflow-hidden bg-[#222425] ${index === 0 ? 'aspect-[2/1] sm:aspect-[16/10] lg:aspect-auto lg:h-full lg:min-h-64' : 'aspect-video sm:aspect-[16/10]'}`}>
+                <Image src={image} alt={alt} fill sizes={index === 0 ? '(max-width: 1024px) 100vw, 640px' : '(max-width: 1024px) 50vw, 320px'} className="object-cover" />
+                {index === 0 && <span className="absolute left-4 top-4 bg-[#ff6a1a] px-3 py-2 text-[10px] font-semibold uppercase text-black sm:left-6 sm:top-6">Coming Soon</span>}
+              </div>
             </figure>
           ))}
         </div>
-        <p className="mt-4 font-mono text-xs text-terracotta-300">Galeri visual konsep Pora Social House · Coming Soon</p>
-        <a href="https://www.instagram.com/bataskota.arena/" target="_blank" rel="noopener noreferrer" className="mt-5 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-terracotta-300 underline underline-offset-4 transition-colors hover:text-white">Kabar pembukaan di Instagram<ArrowUpRight className="h-4 w-4" /></a>
+        <p className="mt-4 text-[11px] text-white/45">Visual konsep Pora Social House.</p>
       </div>
     </section>
   );

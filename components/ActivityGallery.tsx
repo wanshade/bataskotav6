@@ -1,39 +1,53 @@
 import Image from 'next/image';
+import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
 
 const photos = [
-  { id: 6, alt: 'Pemandangan udara lapangan Batas Kota Arena pada siang hari', ratio: 'sm:aspect-video' },
-  { id: 1, alt: 'Pemain berebut bola dalam pertandingan malam di Batas Kota Arena', ratio: 'sm:aspect-[640/427]' },
-  { id: 3, alt: 'Foto bersama tim berseragam hijau di Batas Kota Arena', ratio: 'sm:aspect-[640/427]' },
-  { id: 2, alt: 'Dua pemain berduel memperebutkan bola di Batas Kota Arena', ratio: 'sm:aspect-[3/4]' },
-  { id: 4, alt: 'Penjaga gawang menangkap bola di depan gawang Batas Kota Arena', ratio: 'sm:aspect-[3/4]' },
-  { id: 5, alt: 'Pemain di sisi lapangan dengan logo Batas Kota Arena di belakangnya', ratio: 'sm:aspect-square' },
-  { id: 7, alt: 'Lapangan Batas Kota Arena dilihat dari udara di belakang gawang', ratio: 'sm:aspect-video' },
-  { id: 8, alt: 'Pemandangan seluruh lapangan dan area sekitar Batas Kota Arena', ratio: 'sm:aspect-video' },
+  { id: 6, alt: 'Pemandangan udara lapangan Batas Kota Arena pada siang hari', width: 1280, height: 720 },
+  { id: 1, alt: 'Pertandingan malam di Batas Kota Arena', width: 640, height: 427 },
+  { id: 3, alt: 'Foto bersama tim di Batas Kota Arena', width: 640, height: 427 },
+  { id: 2, alt: 'Dua pemain memperebutkan bola di Batas Kota Arena', width: 480, height: 640 },
+  { id: 4, alt: 'Penjaga gawang di Batas Kota Arena', width: 480, height: 640 },
+  { id: 5, alt: 'Pemain di sisi lapangan Batas Kota Arena', width: 640, height: 640 },
+  { id: 7, alt: 'Lapangan Batas Kota Arena dilihat dari belakang gawang', width: 1280, height: 720 },
+  { id: 8, alt: 'Lapangan dan kawasan sekitar Batas Kota Arena', width: 1280, height: 720 },
 ];
 
 export function ActivityGallery() {
   return (
-    <section id="activities" className="border-t border-terracotta-200 bg-porcelain py-16 dark:border-terracotta-900 dark:bg-black md:py-24">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-8 flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
+    <section id="activities" className="bg-[#e9e7e1] py-20 text-[#111213] sm:py-28">
+      <div className="mx-auto max-w-[1440px] px-5 sm:px-10 lg:px-16">
+        <div className="flex flex-col justify-between gap-8 border-b border-black/20 pb-10 lg:flex-row lg:items-end">
           <div>
-            <span className="font-mono text-xs uppercase tracking-widest text-terracotta-700 dark:text-terracotta-300">Batas Kota Arena · Mini Soccer</span>
-            <h2 id="arena-title" className="mt-3 text-3xl font-bold uppercase text-ink dark:text-white sm:text-5xl">Batas Kota Arena.<br />Tempat main tim lo.</h2>
+            <p className="text-sm text-black/55">01 / Mini Soccer</p>
+            <h2 id="arena-title" className="mt-3 max-w-3xl text-5xl font-medium leading-[1.05] sm:text-7xl">Batas Kota Arena.</h2>
           </div>
-          <div className="max-w-sm">
-            <p className="text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">Lapangan mini soccer di Kota Selong, buat latihan bareng atau tanding antartim. Main dari pagi sampai malam, dengan pilihan tambahan wasit dan dokumentasi. Pilih tanggal dan jam main di bawah.</p>
-            <a href="#booking" className="mt-3 inline-flex min-h-11 items-center gap-2 border-b border-terracotta-600 text-sm font-semibold text-terracotta-700 transition-colors hover:text-ink dark:text-terracotta-300 dark:hover:text-white">Cari jam main <ArrowUpRight className="h-4 w-4" /></a>
+          <div className="max-w-md">
+            <p className="text-base leading-7 text-black/65">Lapangan untuk latihan, pertandingan, dan waktu bersama tim. Pilih sesi bermain dengan opsi wasit dan dokumentasi saat reservasi.</p>
+            <Link id="arena-book-cta" href="/schedule" className="mt-5 inline-flex min-h-11 items-center gap-5 border-b border-black/50 text-sm font-medium transition-colors hover:border-black hover:text-[#c64712]">
+              Reservasi Arena <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
+            </Link>
           </div>
         </div>
-        <div id="activity-photos" role="region" tabIndex={0} aria-label="Galeri Batas Kota Arena, geser untuk melihat foto berikutnya" className="flex snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:block sm:columns-2 sm:gap-5 sm:overflow-visible lg:columns-3">
+        <div id="activity-photos" role="region" tabIndex={0} aria-label="Galeri Batas Kota Arena" className="mt-10 flex snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:block sm:columns-2 sm:gap-5 sm:overflow-visible sm:pb-0 lg:columns-3">
           {photos.map((photo) => (
-            <figure key={photo.id} className="w-[84%] shrink-0 snap-start break-inside-avoid sm:mb-5 sm:w-auto">
-              <div className={`relative aspect-[4/3] w-full overflow-hidden rounded-md ${photo.ratio}`}>
-                <Image src={`/images/arena/arena-${photo.id}.jpg`} alt={photo.alt} fill sizes="(max-width: 640px) 84vw, (max-width: 1024px) 50vw, 400px" className="object-contain" />
+            <figure key={photo.id} className="w-[85%] shrink-0 snap-start break-inside-avoid sm:mb-5 sm:w-auto">
+              <div className="aspect-[4/3] w-full bg-[#d5d3cd] sm:aspect-auto sm:bg-transparent">
+                <Image
+                  src={`/images/arena/arena-${photo.id}.jpg`}
+                  alt={photo.alt}
+                  width={photo.width}
+                  height={photo.height}
+                  sizes="(max-width: 640px) 85vw, (max-width: 1024px) 45vw, 420px"
+                  className="block h-full w-full object-contain sm:h-auto"
+                />
               </div>
             </figure>
           ))}
+        </div>
+        <div className="mt-8 flex flex-wrap justify-between gap-3 border-t border-black/20 pt-5 text-xs text-black/55">
+          <span>Foto Batas Kota Arena</span>
+          <span>Operasional setiap hari / 06:00 - 24:00 WITA</span>
         </div>
       </div>
     </section>

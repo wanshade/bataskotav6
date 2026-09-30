@@ -1,54 +1,28 @@
-import { ArrowUpRight, Clock, MapPin, MessageCircle } from 'lucide-react';
+import Image from 'next/image';
+import { ArrowUpRight } from 'lucide-react';
 import { adminWhatsAppDisplay, adminWhatsAppUrl } from '@/lib/contact';
 
 export function LocationAmenities() {
   return (
-    <section id="location" aria-labelledby="location-title" className="border-t border-terracotta-900 bg-black py-16 text-white md:py-24">
-      <div className="mx-auto grid max-w-7xl items-center gap-10 px-4 sm:px-6 lg:grid-cols-[1fr_1.3fr] lg:gap-16 lg:px-8">
-        <div>
-          <span className="font-mono text-xs uppercase tracking-widest text-terracotta-300">Pancor, Lombok Timur</span>
-          <h2 id="location-title" className="mt-3 text-3xl font-bold sm:text-4xl">Mampir ke<br />Batas Kota Point.</h2>
-          <div className="mt-8 flex items-start gap-4">
-            <MapPin className="mt-1 h-5 w-5 shrink-0 text-terracotta-300" />
-            <address className="max-w-sm text-sm not-italic leading-7 text-neutral-300">
-              Jl. TGH. Zainuddin Abdul Majid, Pancor, Kec. Sukamulia, Kabupaten Lombok Timur, Nusa Tenggara Bar. 83652
-            </address>
-          </div>
-          <dl className="mt-6 divide-y divide-neutral-800 border-y border-neutral-800">
-            <div className="flex items-start gap-4 py-5">
-              <Clock className="mt-0.5 h-5 w-5 shrink-0 text-terracotta-300" />
-              <div>
-                <dt className="text-xs text-neutral-400">Buka setiap hari</dt>
-                <dd className="mt-1 text-sm font-semibold">06:00 &ndash; 24:00 WITA</dd>
-              </div>
-            </div>
-            <div className="flex items-start gap-4 py-5">
-              <MessageCircle className="mt-0.5 h-5 w-5 shrink-0 text-terracotta-300" />
-              <div>
-                <dt className="text-xs text-neutral-400">WhatsApp admin</dt>
-                <dd className="mt-1 text-sm font-semibold"><a href={adminWhatsAppUrl} target="_blank" rel="noopener noreferrer" className="hover:text-terracotta-300">{adminWhatsAppDisplay}</a></dd>
-              </div>
-            </div>
+    <section id="location" aria-labelledby="location-title" className="bg-[#111213] py-20 text-[#f4f2ed] sm:py-28">
+      <div className="mx-auto grid max-w-[1440px] gap-12 px-5 sm:px-10 lg:grid-cols-12 lg:gap-16 lg:px-16">
+        <div className="lg:col-span-5">
+          <span className="text-sm text-[#ff6a1a]">Kunjungi kami</span>
+          <h2 id="location-title" className="mt-4 text-5xl font-medium leading-[1.05] sm:text-6xl">Bertemu di<br />Batas Kota.</h2>
+          <address className="mt-7 max-w-md text-base not-italic leading-8 text-white/65">Jl. TGH. Zainuddin Abdul Majid, Pancor, Kec. Sukamulia, Kabupaten Lombok Timur, Nusa Tenggara Bar. 83652</address>
+          <dl className="mt-8 grid gap-6 border-y border-white/20 py-6 sm:grid-cols-2">
+            <div><dt className="text-xs text-white/45">Operational Daily</dt><dd className="mt-2 text-sm font-medium">06:00 - 24:00 WITA</dd></div>
+            <div><dt className="text-xs text-white/45">Kontak</dt><dd className="mt-2 text-sm font-medium"><a href={adminWhatsAppUrl} target="_blank" rel="noopener noreferrer" className="hover:underline">{adminWhatsAppDisplay}</a></dd></div>
           </dl>
-          <div className="mt-7 flex flex-wrap gap-3">
-            <a id="open-google-maps-btn" href="https://maps.app.goo.gl/h6W1PFLEWQmoEKKbA" target="_blank" rel="noopener noreferrer" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-md bg-terracotta-600 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-terracotta-700">
-              Petunjuk arah<ArrowUpRight className="h-4 w-4" />
-            </a>
-            <a id="location-direct-wa" href={adminWhatsAppUrl} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-md border border-neutral-700 px-5 py-3 text-sm font-semibold transition-colors hover:border-terracotta-400 hover:text-terracotta-300">
-              <MessageCircle className="h-4 w-4" />Hubungi admin
-            </a>
+          <div className="mt-7 flex flex-wrap gap-6">
+            <a id="open-google-maps-btn" href="https://maps.app.goo.gl/h6W1PFLEWQmoEKKbA" target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-5 border-b border-white/60 text-sm font-medium hover:text-[#ff6a1a]">Buka Google Maps<ArrowUpRight aria-hidden="true" className="h-4 w-4" /></a>
+            <a id="location-direct-wa" href={adminWhatsAppUrl} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-5 border-b border-white/30 text-sm text-white/65 hover:text-white">Hubungi kami<ArrowUpRight aria-hidden="true" className="h-4 w-4" /></a>
           </div>
         </div>
-        <div className="overflow-hidden rounded-lg border border-neutral-800 bg-neutral-900">
-          <iframe
-            title="Peta lokasi Batas Kota Arena di Pancor"
-            src="https://www.google.com/maps?q=-8.6422015,116.5093622&z=16&output=embed"
-            className="block h-[340px] w-full border-0 sm:h-[420px] lg:h-[520px]"
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-            allowFullScreen
-          />
-        </div>
+        <figure className="relative min-h-[320px] overflow-hidden bg-[#27292a] sm:min-h-[420px] lg:col-span-7 lg:min-h-[480px]">
+          <Image src="/images/arena/arena-8.jpg" alt="Foto udara Batas Kota Arena dan lingkungan di Pancor" fill sizes="(max-width: 1024px) 100vw, 55vw" className="object-cover" />
+          <figcaption className="absolute bottom-0 left-0 bg-[#111213] px-4 py-3 text-xs text-white sm:px-6">Batas Kota Arena / Pancor, Lombok Timur</figcaption>
+        </figure>
       </div>
     </section>
   );

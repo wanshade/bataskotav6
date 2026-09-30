@@ -9,8 +9,8 @@
    pages never leaks dark pixels around the edges. */
 body {
   font-family: 'Inter', sans-serif;
-  background: #f8f5f1;
-  color: #11100f;
+  background: #ffffff;
+  color: #171717;
   margin: 0;
 }
 
@@ -23,7 +23,7 @@ button, a {
 }
 
 :focus-visible {
-  outline: 2px solid #bd5b3f;
+  outline: 2px solid #737373;
   outline-offset: 3px;
 }
 
@@ -45,16 +45,16 @@ button, a {
 }
 
 ::-webkit-scrollbar-track {
-  background: #f5e3db;
+  background: #f5f5f5;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #bd5b3f;
+  background: #737373;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #843727;
+  background: #404040;
 }
 
 html.dark body {
@@ -73,6 +73,19 @@ html.dark ::-webkit-scrollbar-thumb {
 /* Smooth scrolling */
 html {
   scroll-behavior: smooth;
+}
+
+.public-site,
+.public-site * {
+  letter-spacing: 0;
+}
+
+.public-site .font-mono {
+  font-family: inherit;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
 }
 
 /* Neon glow effects */

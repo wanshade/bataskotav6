@@ -1,153 +1,56 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
+import { ArrowUpRight, Menu, Search, X } from 'lucide-react';
 import { VENUE_IMAGES } from '@/lib/venueAssets';
-import { ThemeToggle } from './ThemeToggle';
-import { Menu, X, Calendar, Search } from 'lucide-react';
 
 interface NavbarProps {
   onOpenSearchBooking: () => void;
   bookingHref?: string;
+  variant?: 'default' | 'brand';
 }
 
-export function Navbar({ onOpenSearchBooking, bookingHref = '/#booking' }: NavbarProps) {
+export function Navbar({ onOpenSearchBooking, bookingHref = '/schedule', variant = 'default' }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
+  const isBrand = variant === 'brand';
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMobileMenuOpen(false);
+    };
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, []);
   const navLinks = [
-    { label: 'Batas Kota Arena', href: '/#mini-soccer' },
+    { label: 'Kawasan', href: '/#facilities' },
+    { label: 'Arena', href: '/#mini-soccer' },
     { label: 'Pora.sch', href: '/#social-house' },
-    { label: 'Padel', href: '/#padel' },
-    { label: 'Tarif', href: '/#booking' },
+    { label: 'Lokasi', href: '/#location' },
   ];
 
   return (
-    <header
-      id="main-header"
-      className="sticky top-0 z-50 w-full border-b border-terracotta-700 bg-black/95 text-white backdrop-blur-md transition-colors dark:border-terracotta-800 dark:bg-black/95"
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
-          {/* Logo & Brand Identity */}
-          <a
-            id="brand-logo"
-            href="/"
-            className="flex items-center gap-3 group focus:outline-none"
-          >
-            <Image src={VENUE_IMAGES.logo} alt="Batas Kota Group" width={48} height={48} className="rounded-md bg-white shrink-0" />
-            <div className="flex flex-col">
-              <span className="text-base sm:text-lg font-semibold tracking-tight text-white uppercase">
-                Batas Kota Point
-              </span>
-              <span className="text-[11px] uppercase tracking-widest text-terracotta-300 font-mono">
-                Arena &bull; Pora.sch &bull; Padel
-              </span>
-            </div>
-          </a>
-
-          {/* Desktop Navigation Links */}
-          <nav
-            id="desktop-navigation"
-            aria-label="Primary Navigation"
-            className="hidden lg:flex items-center gap-5 text-sm font-medium text-neutral-300"
-          >
-            {navLinks.map((link) => (
-              <a
-                key={link.label}
-                href={link.href}
-                className="hover:text-terracotta-300 transition-colors"
-              >
-                {link.label}
-              </a>
-            ))}
-          </nav>
-
-          {/* Action Tools: Search Booking, Theme Toggle, Book CTA */}
-          <div className="hidden lg:flex items-center gap-3">
-            <button
-              id="search-booking-btn"
-              type="button"
-              onClick={onOpenSearchBooking}
-              className="inline-flex items-center gap-2 rounded-md border border-neutral-700 bg-neutral-900 px-3.5 py-2 text-xs font-medium text-neutral-200 transition-colors hover:border-terracotta-500 hover:text-terracotta-300"
-              title="Look up existing reservation status"
-            >
-              <Search className="w-3.5 h-3.5" />
-              <span>Check Booking</span>
-            </button>
-
-            <ThemeToggle />
-
-            <a
-              id="header-book-cta"
-              href={bookingHref}
-              className="inline-flex items-center justify-center gap-2 rounded-md bg-terracotta-600 px-5 py-2.5 text-xs font-semibold uppercase tracking-wider text-white transition-colors hover:bg-terracotta-500"
-            >
-              <Calendar className="w-3.5 h-3.5" />
-              <span>Booking</span>
-            </a>
-          </div>
-
-          {/* Mobile menu button */}
-          <div className="flex items-center gap-2 lg:hidden">
-            <ThemeToggle />
-            <button
-              id="mobile-menu-toggle"
-              type="button"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="rounded-md border border-neutral-700 p-2 text-neutral-100 transition-colors hover:border-terracotta-500 hover:text-terracotta-300"
-              aria-label="Toggle menu"
-              aria-expanded={mobileMenuOpen}
-              aria-controls="mobile-menu"
-            >
-              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </button>
-          </div>
+    <header id="main-header" className={`top-0 z-50 border-b ${isBrand ? 'fixed inset-x-0 border-white/10 bg-[#111213] text-white' : 'sticky border-neutral-200 bg-white text-neutral-950'}`}>
+      <div className="mx-auto flex h-20 max-w-[1440px] items-center justify-between gap-4 px-5 sm:px-10 lg:px-16">
+        <Link id="brand-logo" href="/" aria-label="Batas Kota Point, halaman utama" className="flex min-w-0 items-center gap-3">
+          <Image src={VENUE_IMAGES.logo} alt="Batas Kota Point" width={44} height={44} className="shrink-0 bg-white" />
+          <div><span className="block text-sm font-semibold uppercase sm:text-base">Batas Kota Point</span><span className={`mt-1 block text-[10px] ${isBrand ? 'text-white/65' : 'text-neutral-500'}`}>The Social House</span></div>
+        </Link>
+        <nav aria-label="Navigasi utama" className="hidden items-center gap-7 text-xs font-medium lg:flex">
+          {navLinks.map((link) => <Link key={link.href} href={link.href} className={`transition-colors ${isBrand ? 'text-white/80 hover:text-white' : 'hover:text-neutral-500'}`}>{link.label}</Link>)}
+        </nav>
+        <div className="flex items-center gap-2 sm:gap-4">
+          <button id="search-booking-btn" type="button" onClick={onOpenSearchBooking} title="Cek booking" aria-label="Cek booking" className={`hidden h-11 w-11 items-center justify-center sm:flex ${isBrand ? 'hover:bg-white/10' : 'hover:bg-neutral-100'}`}><Search aria-hidden="true" className="h-[18px] w-[18px]" /></button>
+          <Link id="header-book-cta" href={bookingHref} className={`hidden min-h-11 items-center gap-5 rounded-sm px-5 text-xs font-medium transition-colors sm:inline-flex ${isBrand ? 'bg-[#ff6a1a] text-black hover:bg-white' : 'bg-neutral-950 text-white hover:bg-neutral-700'}`}>Reservasi Arena<ArrowUpRight aria-hidden="true" className="h-4 w-4" /></Link>
+          <button id="mobile-menu-toggle" type="button" onClick={() => setMobileMenuOpen((open) => !open)} aria-label={mobileMenuOpen ? 'Tutup menu' : 'Buka menu'} aria-expanded={mobileMenuOpen} aria-controls="mobile-menu" className={`flex h-11 w-11 shrink-0 items-center justify-center lg:hidden ${isBrand ? 'hover:bg-white/10' : 'hover:bg-neutral-100'}`}>{mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}</button>
         </div>
       </div>
-
-      {/* Mobile Menu Dropdown */}
       {mobileMenuOpen && (
-        <div
-          id="mobile-menu"
-          className="space-y-3 border-b border-terracotta-700 bg-black px-4 pb-6 pt-3 lg:hidden"
-        >
-          <div className="flex flex-col space-y-2">
-            {navLinks.map((link) => (
-              <a
-                key={link.label}
-                href={link.href}
-                onClick={() => setMobileMenuOpen(false)}
-                className="rounded-md px-3 py-2 text-sm font-medium text-neutral-200 transition-colors hover:bg-terracotta-950 hover:text-terracotta-200"
-              >
-                {link.label}
-              </a>
-            ))}
-          </div>
-
-          <div className="flex flex-col gap-2 border-t border-neutral-800 pt-3">
-            <button
-              id="mobile-search-booking-btn"
-              type="button"
-              onClick={() => {
-                setMobileMenuOpen(false);
-                onOpenSearchBooking();
-              }}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-md border border-neutral-700 bg-neutral-900 px-4 py-2.5 text-xs font-medium text-neutral-200"
-            >
-              <Search className="w-4 h-4" />
-              <span>Check Existing Reservation</span>
-            </button>
-            <a
-              id="mobile-book-cta"
-              href={bookingHref}
-              onClick={() => setMobileMenuOpen(false)}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-terracotta-600 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-white"
-            >
-              <Calendar className="w-4 h-4" />
-              <span>Booking Arena</span>
-            </a>
-          </div>
-        </div>
+        <nav id="mobile-menu" aria-label="Navigasi seluler" className={`absolute inset-x-0 top-full max-h-[calc(100svh-80px)] overflow-y-auto border-b px-5 pb-6 shadow-lg sm:px-10 lg:hidden ${isBrand ? 'border-white/10 bg-[#111213] text-white' : 'border-neutral-200 bg-white'}`}>
+          {navLinks.map((link) => <Link key={link.href} href={link.href} onClick={() => setMobileMenuOpen(false)} className={`flex min-h-14 items-center justify-between border-t text-sm ${isBrand ? 'border-white/15' : 'border-neutral-100'}`}>{link.label}<ArrowUpRight className={`h-4 w-4 ${isBrand ? 'text-[#ff6a1a]' : 'text-neutral-400'}`} /></Link>)}
+          <button type="button" onClick={() => { setMobileMenuOpen(false); onOpenSearchBooking(); }} className={`flex min-h-14 w-full items-center gap-3 border-t text-sm ${isBrand ? 'border-white/15' : 'border-neutral-100'}`}><Search className="h-4 w-4" />Cek booking</button>
+          <Link id="mobile-book-cta" href={bookingHref} onClick={() => setMobileMenuOpen(false)} className={`mt-3 flex min-h-12 items-center justify-between px-5 text-sm font-medium ${isBrand ? 'bg-[#ff6a1a] text-black' : 'bg-black text-white'}`}>Reservasi Batas Kota Arena<ArrowUpRight className="h-4 w-4" /></Link>
+        </nav>
       )}
     </header>
   );

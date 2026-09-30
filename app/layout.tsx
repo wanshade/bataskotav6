@@ -7,13 +7,13 @@ const inter = Inter({ subsets: ["latin"], display: 'swap', fallback: ['system-ui
 export const metadata: Metadata = {
   title: "Batas Kota Point | Pora.sch, Batas Kota Arena & Padel",
   description:
-    "Booking mini soccer di Batas Kota Arena, Kota Selong. Kenali Pora.sch dan padel (Coming Soon).",
+    "Batas Kota Point, kawasan olahraga dan ruang sosial di Pancor, Lombok Timur. Kenali Batas Kota Arena, Pora Social House, dan pengembangan padel.",
   keywords: [
     "arena olahraga",
     "pemesanan",
-    "gaming",
-    "fasilitas",
-    "lapangan futsal",
+    "Batas Kota Point",
+    "Pora Social House",
+    "mini soccer Lombok Timur",
   ],
   authors: [{ name: "Tim Batas Kota" }],
 };
