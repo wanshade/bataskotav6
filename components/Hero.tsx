@@ -17,9 +17,10 @@ export function Hero() {
         sizes="100vw"
         className="object-cover object-[56%_center]"
       />
-      <div aria-hidden="true" className="absolute inset-0 bg-black/35" />
+      <div aria-hidden="true" className="absolute inset-0 bg-black/45" />
       <div className="relative mx-auto flex h-full max-w-[1440px] flex-col justify-end px-5 pb-7 pt-28 sm:px-10 sm:pb-9 lg:px-16">
         <div>
+          <p className={`${dancingScript.className} mb-3 text-[28px] leading-[1.15] text-white/90 sm:mb-4 sm:text-[36px]`}>Starting New Lifestyle</p>
           <h1 id="hero-main-title" className="max-w-5xl text-[47px] font-medium leading-[0.97] min-[400px]:text-[58px] sm:text-[84px] lg:text-[116px]">
             Batas Kota<br />Point.
           </h1>
