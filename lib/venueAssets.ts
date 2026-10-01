@@ -1,17 +1,17 @@
 import venueOverview from '@/assets/hero batas kota point.jpeg';
 import venueEntrance from '@/assets/hero batas kota point2.jpeg';
-import cafeFront from '@/assets/cafe.jpeg';
-import cafeSide from '@/assets/cafe 2.jpeg';
-import cafeInterior from '@/assets/cafe 3.jpeg';
-import cafeTerrace from '@/assets/cafe 4.jpeg';
-import cafeCourtyard from '@/assets/cafe 5.jpeg';
+import poraFriends from '@/assets/pora-social-1.jpg';
+import poraWelcome from '@/assets/pora-social-2.jpg';
+import poraCoffee from '@/assets/pora-social-3.jpg';
+import poraConversation from '@/assets/pora-social-4.jpg';
+import poraGathering from '@/assets/pora-social-5.jpg';
 import logo from '@/assets/logo.jpeg';
 
 export const VENUE_IMAGES = { venueOverview, venueEntrance, logo };
 export const CAFE_GALLERY = [
-  { image: cafeFront, alt: 'Visual konsep fasad Pora Social House' },
-  { image: cafeSide, alt: 'Visual konsep Pora Social House di sisi Batas Kota Arena' },
-  { image: cafeInterior, alt: 'Visual konsep area Pora Social House' },
-  { image: cafeTerrace, alt: 'Visual konsep teras Pora Social House' },
-  { image: cafeCourtyard, alt: 'Visual konsep ruang berkumpul Pora Social House' },
+  { image: poraFriends, alt: 'Friends enjoying coffee together', position: '50% 50%' },
+  { image: poraWelcome, alt: 'A welcoming cafe setting', position: '50% 40%' },
+  { image: poraCoffee, alt: 'A quiet moment with coffee and a book', position: '50% 45%' },
+  { image: poraConversation, alt: 'Friends sharing a conversation over coffee', position: '60% 45%' },
+  { image: poraGathering, alt: 'A group gathering around a cafe table', position: '50% 45%' },
 ];

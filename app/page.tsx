@@ -1,35 +1,13 @@
-'use client';
+import type { Metadata } from 'next';
+import { HomePageClient } from '@/components/HomePageClient';
 
-import { useState } from 'react';
-import { Navbar } from '@/components/Navbar';
-import { Hero } from '@/components/Hero';
-import { Facilities } from '@/components/Facilities';
-import { CafeHighlights } from '@/components/CafeHighlights';
-import { ActivityGallery } from '@/components/ActivityGallery';
-import { PadelHighlights } from '@/components/PadelHighlights';
-import { LocationAmenities } from '@/components/LocationAmenities';
-import { BrandBookingCta } from '@/components/BrandBookingCta';
-import { Footer } from '@/components/Footer';
-import { SearchBookingModal } from '@/components/SearchBookingModal';
+export const metadata: Metadata = {
+  title: 'Batas Kota Point | The Social House',
+  description: 'Born in Selong, Batas Kota Point brings sport, coffee, and community together. Discover Batas Kota Arena, matchday moments, and the upcoming Pora Social House.',
+  keywords: ['Batas Kota Point', 'Pora Social House', 'Batas Kota Arena', 'mini soccer East Lombok', 'Social House Selong'],
+  authors: [{ name: 'Batas Kota Team' }],
+};
 
 export default function HomePage() {
-  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
-  return (
-    <div className="public-site brand-site min-h-screen bg-[#111213] text-[#f4f2ed] selection:bg-[#ff6a1a] selection:text-black">
-      <Navbar variant="brand" onOpenSearchBooking={() => setIsSearchModalOpen(true)} />
-      <main id="main-content">
-        <Hero />
-        <Facilities />
-        <section id="mini-soccer" aria-labelledby="arena-title">
-          <ActivityGallery />
-        </section>
-        <CafeHighlights />
-        <PadelHighlights />
-        <LocationAmenities />
-        <BrandBookingCta />
-      </main>
-      <Footer variant="brand" />
-      <SearchBookingModal isOpen={isSearchModalOpen} onClose={() => setIsSearchModalOpen(false)} />
-    </div>
-  );
+  return <HomePageClient />;
 }

@@ -7,9 +7,26 @@ import type { Booking } from '@/lib/schema';
 interface SearchBookingModalProps {
   isOpen: boolean;
   onClose: () => void;
+  language?: 'id' | 'en';
 }
 
-export function SearchBookingModal({ isOpen, onClose }: SearchBookingModalProps) {
+const messages = {
+  id: {
+    notFound: 'Booking tidak ditemukan.', failed: 'Booking gagal dicari.',
+    close: 'Tutup pencarian', status: 'Status reservasi', title: 'Cek booking',
+    description: 'Masukkan Booking ID yang diterima setelah melakukan pemesanan.',
+    placeholder: 'Contoh: BK-ABC123', search: 'Cari booking', total: 'Total booking',
+  },
+  en: {
+    notFound: 'Booking not found.', failed: 'Unable to look up your booking. Please try again.',
+    close: 'Close search', status: 'Reservation status', title: 'Check booking',
+    description: 'Enter the Booking ID you received after making your reservation.',
+    placeholder: 'Example: BK-ABC123', search: 'Find booking', total: 'Booking total',
+  },
+};
+
+export function SearchBookingModal({ isOpen, onClose, language = 'id' }: SearchBookingModalProps) {
+  const copy = messages[language];
   const [bookingId, setBookingId] = useState('');
   const [result, setResult] = useState<Booking | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -38,10 +55,10 @@ export function SearchBookingModal({ isOpen, onClose }: SearchBookingModalProps)
     try {
       const response = await fetch(`/api/bookings/${encodeURIComponent(normalizedId)}`, { cache: 'no-store' });
       const data = await response.json();
-      if (!response.ok) throw new Error(response.status === 404 ? 'Booking tidak ditemukan.' : data.error || 'Booking gagal dicari.');
+      if (!response.ok) throw new Error(response.status === 404 ? copy.notFound : (language === 'en' ? copy.failed : data.error || copy.failed));
       setResult(data.booking);
     } catch (searchError) {
-      setError(searchError instanceof Error ? searchError.message : 'Booking gagal dicari.');
+      setError(searchError instanceof Error ? searchError.message : copy.failed);
     } finally {
       setIsLoading(false);
     }
@@ -50,14 +67,14 @@ export function SearchBookingModal({ isOpen, onClose }: SearchBookingModalProps)
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="search-booking-title" onMouseDown={onClose}>
       <div className="relative w-full max-w-md rounded-lg border border-neutral-300 bg-neutral-50 p-6 shadow-2xl dark:border-neutral-900 dark:bg-neutral-900" onMouseDown={(event) => event.stopPropagation()}>
-        <button type="button" onClick={onClose} aria-label="Tutup pencarian" className="absolute right-4 top-4 rounded-full p-2 text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-900 dark:hover:bg-neutral-800 dark:hover:text-white"><X className="h-5 w-5" /></button>
-        <span className="font-mono text-[10px] uppercase tracking-widest text-neutral-500">Status reservasi</span>
-        <h2 id="search-booking-title" className="mt-2 text-2xl font-bold uppercase text-neutral-900 dark:text-white">Cek booking</h2>
-        <p className="mt-2 pr-8 text-xs leading-relaxed text-neutral-500">Masukkan Booking ID yang diterima setelah melakukan pemesanan.</p>
+        <button type="button" onClick={onClose} aria-label={copy.close} className="absolute right-4 top-4 rounded-full p-2 text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-900 dark:hover:bg-neutral-800 dark:hover:text-white"><X className="h-5 w-5" /></button>
+        <span className="font-mono text-[10px] uppercase tracking-widest text-neutral-500">{copy.status}</span>
+        <h2 id="search-booking-title" className="mt-2 text-2xl font-bold uppercase text-neutral-900 dark:text-white">{copy.title}</h2>
+        <p className="mt-2 pr-8 text-xs leading-relaxed text-neutral-500">{copy.description}</p>
 
         <form onSubmit={handleSearch} className="mt-6 flex gap-2">
-          <input autoFocus value={bookingId} onChange={(event) => setBookingId(event.target.value)} placeholder="Contoh: BK-ABC123" className="min-w-0 flex-1 rounded-md border border-neutral-300 bg-white px-3.5 py-2.5 text-sm uppercase text-neutral-900 outline-none focus:border-neutral-600 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white dark:focus:border-neutral-400" />
-          <button type="submit" disabled={isLoading} aria-label="Cari booking" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-neutral-950 text-white transition-colors hover:bg-neutral-700 disabled:opacity-50 dark:bg-neutral-500 dark:text-white"><Search className="h-4 w-4" /></button>
+          <input autoFocus aria-label="Booking ID" value={bookingId} onChange={(event) => setBookingId(event.target.value)} placeholder={copy.placeholder} className="min-w-0 flex-1 rounded-md border border-neutral-300 bg-white px-3.5 py-2.5 text-sm uppercase text-neutral-900 outline-none focus:border-neutral-600 dark:border-neutral-700 dark:bg-neutral-950 dark:text-white dark:focus:border-neutral-400" />
+          <button type="submit" disabled={isLoading} aria-label={copy.search} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-neutral-950 text-white transition-colors hover:bg-neutral-700 disabled:opacity-50 dark:bg-neutral-500 dark:text-white"><Search className="h-4 w-4" /></button>
         </form>
 
         {error && <div role="alert" className="mt-5 flex items-center gap-2 rounded-md border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300"><AlertCircle className="h-4 w-4 shrink-0" />{error}</div>}
@@ -74,7 +91,7 @@ export function SearchBookingModal({ isOpen, onClose }: SearchBookingModalProps)
               <p className="flex gap-2"><Clock className="h-3.5 w-3.5 shrink-0 text-neutral-400" />{result.timeSlot}</p>
             </div>
             <div className="mt-4 flex items-end justify-between border-t border-neutral-200 pt-4 dark:border-neutral-800">
-              <span className="text-xs text-neutral-500">Total booking</span>
+              <span className="text-xs text-neutral-500">{copy.total}</span>
               <strong className="font-mono text-base text-neutral-900 dark:text-white">{result.price}</strong>
             </div>
           </div>

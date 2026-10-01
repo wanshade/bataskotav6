@@ -8,22 +8,22 @@ const brands = [
   {
     name: 'Batas Kota Arena',
     category: '01 / Mini Soccer',
-    description: 'Tempat tim bertemu di lapangan. Arena sudah beroperasi dan jadwal bermain dapat dipesan secara online.',
+    description: 'Where teams come together on the pitch. The Arena is open, with playing sessions available to book online.',
     logo: '/images/brands/batas-kota-arena-logo.png',
-    logoAlt: 'Logo Batas Kota Arena Mini Soccer',
+    logoAlt: 'Batas Kota Arena Mini Soccer logo',
     surface: 'bg-[#f4f2ed]',
     href: '#mini-soccer',
-    action: 'Kenali Arena',
+    action: 'Discover the Arena',
   },
   {
     name: 'Pora Social House',
     category: '02 / Social House',
-    description: 'Ruang untuk duduk, singgah, dan berkumpul setelah main. Pora.sch sedang disiapkan dan akan hadir di dalam kawasan.',
+    description: 'A place to slow down, stop by, and reconnect after the game. Pora.sch is coming soon to Batas Kota Point.',
     logo: '/images/brands/pora-social-house-logo.png',
-    logoAlt: 'Logo Pora Social House',
-    surface: 'bg-[#292b2b]',
+    logoAlt: 'Pora Social House logo',
+    surface: 'bg-[#f4f2ed]',
     href: '#social-house',
-    action: 'Kenali Pora.sch',
+    action: 'Discover Pora.sch',
   },
 ];
 
@@ -37,7 +37,10 @@ export function Facilities() {
             <span className={`${dancingScript.className} mt-1 block text-[48px] leading-[1.2] sm:mt-2 sm:text-[72px]`}>The Social House</span>
           </h2>
           <p className="mt-7 max-w-2xl text-base leading-8 text-white/65 sm:text-lg">
-            Batas Kota Point hadir sebagai The Social House pertama di Pancor. Kawasan ini menyatukan aktivitas olahraga dan ruang berkumpul, memberi tempat untuk bermain, bertemu, dan menikmati waktu bersama.
+            Born in Selong, Batas Kota Point brings sport, coffee, and community into everyday life. A Social House rooted in its hometown, created for people to play, connect, and feel part of something local.
+          </p>
+          <p className="mt-4 max-w-2xl text-base leading-8 text-white/65 sm:text-lg">
+            Batas Kota Arena and Pora Social House share one purpose: bringing people together. From time on the pitch to conversations over coffee, every part of Batas Kota Point makes room for connection.
           </p>
         </div>
 
@@ -53,6 +56,7 @@ export function Facilities() {
               </div>
               <h3 className="mt-3 text-2xl font-medium sm:text-4xl">{brand.name}</h3>
               <p className="mt-4 max-w-lg text-sm leading-7 text-white/60 sm:text-base">{brand.description}</p>
+              <p className="mt-4 text-xs text-white/50">Part of Batas Kota Point</p>
               <a href={brand.href} className="mt-5 inline-flex min-h-11 items-center gap-5 border-b border-white/40 text-sm font-medium transition-colors hover:border-[#ff6a1a] hover:text-[#ff6a1a]">
                 {brand.action} <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
               </a>
@@ -61,7 +65,7 @@ export function Facilities() {
         </div>
 
         <a href="#padel" className="group mt-16 flex min-h-20 items-center justify-between gap-5 border-y border-white/20 py-5 text-sm transition-colors hover:text-[#ff6a1a]">
-          <span className="hidden text-white/45 min-[400px]:inline">Berikutnya</span>
+          <span className="hidden text-white/45 min-[400px]:inline">Up next</span>
           <span className="mr-auto text-lg font-medium sm:text-2xl">Padel</span>
           <span className="shrink-0 whitespace-nowrap text-xs text-white/45">Coming Soon</span>
           <ArrowDownRight aria-hidden="true" className="h-5 w-5 shrink-0 transition-transform group-hover:translate-x-1 group-hover:translate-y-1" />
