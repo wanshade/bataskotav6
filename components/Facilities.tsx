@@ -37,10 +37,10 @@ export function Facilities() {
             <span className={`${dancingScript.className} mt-1 block text-[48px] leading-[1.2] sm:mt-2 sm:text-[72px]`}>The Social House</span>
           </h2>
           <p className="mt-7 max-w-2xl text-base leading-8 text-white/65 sm:text-lg">
-            Born in Selong, Batas Kota Point brings sport, coffee, and community into everyday life. A Social House rooted in its hometown, created for people to play, connect, and feel part of something local.
+            Batas Kota is all about passion, happiness &amp; togetherness. We bring sport, coffee, and community through the new lifestyle &amp; trends.
           </p>
           <p className="mt-4 max-w-2xl text-base leading-8 text-white/65 sm:text-lg">
-            Batas Kota Arena and Pora Social House share one purpose: bringing people together. From time on the pitch to conversations over coffee, every part of Batas Kota Point makes room for connection.
+            This year, we are introducing Pora Cafe where people gather &amp; share love
           </p>
         </div>
 
