@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
   AlertCircle,
+  AlertTriangle,
   ArrowLeft,
   Calendar as CalendarIcon,
   Camera,
@@ -446,6 +447,10 @@ export function BookingSystem() {
                 <button type="submit" disabled={isSubmitting || isLoading || selectedSlots.length === 0} className="flex w-full items-center justify-center gap-2 rounded-md bg-neutral-950 px-4 py-3 text-xs font-bold uppercase text-white transition-colors hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-neutral-500 dark:text-white dark:hover:bg-neutral-400">
                   <CheckCircle2 className="h-4 w-4" />{isSubmitting ? 'Memproses booking...' : 'Booking jadwal ini'}
                 </button>
+                <div id="booking-transfer-warning" className="flex items-start gap-2.5 rounded-md border border-rose-200 bg-rose-50 p-3 text-xs leading-relaxed text-rose-800 dark:border-rose-900 dark:bg-rose-950/30 dark:text-rose-300">
+                  <AlertTriangle aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0" />
+                  <p><strong>PERINGATAN:</strong> Transfer hanya ke rekening atas nama <strong>CV BATAS KOTA POINT</strong>. Kami tidak bertanggung jawab atas transfer ke rekening lain.</p>
+                </div>
                 <p className="flex items-start justify-center gap-1.5 pt-2 text-center font-mono text-[10px] leading-relaxed text-neutral-500"><Shield className="mt-0.5 h-3.5 w-3.5 shrink-0" />Booking berstatus pending sampai pembayaran dikonfirmasi admin.</p>
               </form>
             </div>

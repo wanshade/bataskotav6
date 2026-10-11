@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { BookingSystem } from '@/components/BookingSystem';
-import { FaqSection } from '@/components/FaqSection';
+import { BookingRules } from '@/components/BookingRules';
 import { SearchBookingModal } from '@/components/SearchBookingModal';
 
 export default function SchedulePage() {
@@ -18,7 +18,7 @@ export default function SchedulePage() {
       />
       <main id="main-content">
         <BookingSystem />
-        <FaqSection />
+        <BookingRules />
       </main>
       <Footer />
       <SearchBookingModal

@@ -32,7 +32,7 @@ export function Footer({ variant = 'default' }: { variant?: 'default' | 'brand' 
               <li><a href={adminWhatsAppUrl} target="_blank" rel="noopener noreferrer" className="hover:text-white">WhatsApp</a></li>
               {isBrand && <li><Link href="/#matchday" className="hover:text-white">Matchday & Community</Link></li>}
               <li><Link href="/#location" className="hover:text-white">{isBrand ? 'Location & Contact' : 'Lokasi & Kontak'}</Link></li>
-              <li><Link href="/schedule#faq" className="hover:text-white">{isBrand ? 'Booking information' : 'Informasi booking'}</Link></li>
+              <li><Link href="/schedule#booking-rules" className="hover:text-white">{isBrand ? 'Booking information' : 'Informasi booking'}</Link></li>
             </ul>
           </div>
         </div>
